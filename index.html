@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Speaking Practice Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div class="max-w-4xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-indigo-700 flex items-center gap-2">
+                    <i data-lucide="award" class="w-8 h-8"></i>
+                    IELTS Speaking AI
+                </h1>
+                <p class="text-slate-500">Full Question Bank & 4-Criteria Assessment</p>
+            </div>
+            <button onclick="generateExam()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg active:scale-95">
+                <i data-lucide="play" class="w-5 h-5"></i>
+                Start Full Mock Test
+            </button>
+        </header>
+
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-100">
+            <div class="bg-indigo-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-500">
+                <i data-lucide="mic-2" class="w-10 h-10"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Ready for your simulation?</h2>
+            <p class="text-slate-500 mb-8 max-w-md mx-auto">Hệ thống sẽ dẫn dắt bạn qua 3 phần thi. Kết quả sẽ được chấm điểm chi tiết dựa trên tiêu chuẩn IELTS quốc tế.</p>
+        </div>
+
+        <!-- Exam UI -->
+        <div id="exam-container" class="hidden space-y-6">
+            <!-- Loading/Grading Overlay -->
+            <div id="grading-overlay" class="hidden flex flex-col items-center justify-center p-12 bg-white/90 backdrop-blur rounded-3xl border-2 border-indigo-200 animate-fade-in z-50">
+                <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                <h3 class="text-xl font-bold text-slate-800" id="grading-status-text">AI is analyzing...</h3>
+                <p class="text-slate-500 text-sm mt-2">Vui lòng chờ trong giây lát để hệ thống chấm điểm Part vừa hoàn thành.</p>
+            </div>
+
+            <!-- Examiner Box -->
+            <section id="main-test-area" class="bg-white rounded-3xl p-8 shadow-sm border border-indigo-100 relative overflow-hidden">
+                <div class="relative z-10 flex flex-col items-center text-center">
+                    <div id="part-indicator" class="mb-2 px-4 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-widest">Part 1</div>
+                    <div id="narrator-text" class="text-slate-500 italic mb-4">The examiner is preparing...</div>
+                    
+                    <div id="question-display" class="text-2xl md:text-3xl font-bold text-slate-800 mb-8 min-h-[120px] flex items-center justify-center animate-fade-in">
+                        Question will appear here
+                    </div>
+
+                    <!-- Part 2 Countdown -->
+                    <div id="p2-timer-container" class="hidden mb-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 w-full max-w-xs">
+                        <div id="p2-timer-label" class="text-xs font-bold text-amber-700 uppercase mb-1">Preparation Time</div>
+                        <div id="p2-timer-countdown" class="text-4xl font-mono font-black text-amber-600">01:00</div>
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <button id="speak-btn" onclick="repeatQuestion()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg transition-colors">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i> Repeat
+                        </button>
+                        <button id="p2-prep-btn" onclick="startP2Prep()" class="hidden flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-bold transition-all">
+                            Start Prep <i data-lucide="timer" class="w-5 h-5"></i>
+                        </button>
+                        <button id="next-btn" onclick="nextStep()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all">
+                            Next <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rec Area -->
+            <section id="recording-section" class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl flex items-center justify-between hidden">
+                <div class="flex items-center gap-4">
+                    <div id="rec-dot" class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <div>
+                        <div class="text-xs uppercase font-bold text-slate-400 tracking-tighter">Recording Part <span id="rec-part-num">1</span></div>
+                        <div id="timer-display" class="text-2xl font-mono font-bold">0:00</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold">Auto-capturing Audio</p>
+                    <p class="text-xs italic text-indigo-300">Speaking now...</p>
+                </div>
+            </section>
+
+            <!-- Audio Review -->
+            <section id="final-audio-preview" class="hidden bg-slate-100 p-6 rounded-3xl border border-slate-200 flex flex-col items-center gap-4 animate-fade-in">
+                <h4 class="font-bold text-slate-700">Review Last Recording</h4>
+                <audio id="audio-playback" controls class="w-full"></audio>
+                <button onclick="downloadRecording()" class="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium text-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i> Download recording (.webm)
+                </button>
+            </section>
+
+            <!-- Final Report Area -->
+            <section id="feedback-area" class="hidden bg-white rounded-3xl p-8 shadow-2xl border-2 border-indigo-100 animate-fade-in">
+                <div class="text-center mb-8 border-b pb-6">
+                    <h2 class="text-3xl font-black text-slate-800 mb-2 uppercase">IELTS Speaking Full Report</h2>
+                    <p class="text-slate-500">Based on Official Band Descriptors</p>
+                </div>
+
+                <!-- Scores Header -->
+                <div class="grid md:grid-cols-4 gap-6 mb-10">
+                    <div class="bg-indigo-600 text-white p-8 rounded-3xl flex flex-col items-center justify-center shadow-xl">
+                        <span class="text-xs uppercase font-bold opacity-80 mb-1">Overall Band</span>
+                        <span id="final-score" class="text-7xl font-black">0.0</span>
+                    </div>
+                    <div class="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4" id="criteria-scores-summary">
+                        <!-- Score criteria summarized -->
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis -->
+                <div class="space-y-6" id="detailed-feedback-list"></div>
+
+                <div class="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                    <h4 class="font-bold text-slate-800 mb-2">Examiner's Final Advice:</h4>
+                    <p id="final-advice" class="text-slate-600 text-sm leading-relaxed italic"></p>
+                </div>
+
+                <button onclick="location.reload()" class="mt-8 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all">
+                    Restart Practice
+                </button>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = ""; 
+
+        const QUESTION_BANK = {
+            part1: [
+                { text: "Do you like shopping?" }, 
+                { text: "Do you compare prices when you shop? Why?" },
+                { text: "Is it difficult for you to make choices when you shop?" }, 
+                { text: "Do you think hobbies are important?" }, 
+                { text: "Which hobby do you like to try in the future?" },
+                { text: "What do you like to do on the weekends?" }, 
+                { text: "What kind of music do you listen to?" },
+                { text: "Who is your favorite celebrity in your country?" }, 
+                { text: "Would you like to be a famous person?" },
+                { text: "Is there much pollution where you live?" }, 
+                { text: "Do you take an interest in nature?" },
+                { text: "What kinds of animals are popular pets in your country?" }
+            ],
+            topicSets: [
+                {
+                    topic: "Possessions & Shopping",
+                    part2: "Describe something you own that you want to replace\nYou should say:\n• What it is\n• Where it is\n• How you got it\n• And explain why you want to replace it",
+                    part3: [
+                        "What risks would you take when shopping online?",
+                        "Will large shopping malls continue to be popular in the future?",
+                        "Does consumption have any impact on the environment?"
+                    ]
+                },
+                {
+                    topic: "Leisure Time",
+                    part2: "Describe your leisure time. You should say:\n• How you usually spend it\n• Who you prefer to spend it with\n• And explain why leisure time is important to you",
+                    part3: [
+                        "How has the way we spend free time changed over the years?",
+                        "Do women have more leisure time than men?",
+                        "Why are traditional leisure activities losing popularity?"
+                    ]
+                }
+            ]
+        };
+
+        let state = {
+            activeExam: null,
+            currentPart: 1,
+            p1Index: -1,
+            p3Index: -1,
+            p2Phase: 'intro',
+            mediaRecorder: null,
+            audioChunks: [],
+            isRecording: false,
+            timer: 0,
+            timerId: null,
+            partResults: { 1: null, 2: null, 3: null },
+            lastBlob: null
+        };
+
+        function ieltsRounding(score) {
+            const fraction = score % 1;
+            if (fraction < 0.25) return Math.floor(score);
+            if (fraction >= 0.25 && fraction < 0.75) return Math.floor(score) + 0.5;
+            return Math.ceil(score);
+        }
+
+        function generateExam() {
+            const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5);
+            const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
+            
+            state = {
+                activeExam: { p1: shuffledP1, p2: randomSet.part2, p3: randomSet.part3, topic: randomSet.topic },
+                currentPart: 1,
+                p1Index: -1,
+                p3Index: -1,
+                p2Phase: 'intro',
+                audioChunks: [],
+                partResults: { 1: null, 2: null, 3: null },
+                isRecording: false
+            };
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('exam-container').classList.remove('hidden');
+            document.getElementById('feedback-area').classList.add('hidden');
+            document.getElementById('final-audio-preview').classList.add('hidden');
+            updateFlow();
+        }
+
+        async function startPartRecording() {
+            if (state.isRecording) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                state.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                state.audioChunks = [];
+                state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.audioChunks.push(e.data); };
+                state.mediaRecorder.start();
+                state.isRecording = true;
+                state.timer = 0;
+                document.getElementById('recording-section').classList.remove('hidden');
+                document.getElementById('rec-part-num').innerText = state.currentPart;
+                state.timerId = setInterval(() => {
+                    state.timer++;
+                    const m = Math.floor(state.timer / 60);
+                    const s = state.timer % 60;
+                    document.getElementById('timer-display').innerText = `${m}:${s.toString().padStart(2, '0')}`;
+                }, 1000);
+            } catch (err) { alert("Microphone access denied."); }
+        }
+
+        function stopPartRecording() {
+            return new Promise((resolve) => {
+                if (!state.mediaRecorder || state.mediaRecorder.state === "inactive") {
+                    state.isRecording = false;
+                    clearInterval(state.timerId);
+                    return resolve(null);
+                }
+                state.mediaRecorder.onstop = () => {
+                    const blob = new Blob(state.audioChunks, { type: 'audio/webm' });
+                    state.lastBlob = blob;
+                    state.isRecording = false;
+                    clearInterval(state.timerId);
+                    document.getElementById('recording-section').classList.add('hidden');
+                    
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('audio-playback').src = url;
+                    document.getElementById('final-audio-preview').classList.remove('hidden');
+                    
+                    resolve(blob);
+                };
+                state.mediaRecorder.stop();
+            });
+        }
+
+        function downloadRecording() {
+            if (!state.lastBlob) return;
+            const url = URL.createObjectURL(state.lastBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ielts-part-${state.currentPart}-${Date.now()}.webm`;
+            a.click();
+        }
+
+        function updateFlow() {
+            const display = document.getElementById('question-display');
+            const indicator = document.getElementById('part-indicator');
+            const nextBtn = document.getElementById('next-btn');
+            const p2PrepBtn = document.getElementById('p2-prep-btn');
+            const p2Timer = document.getElementById('p2-timer-container');
+            const narrator = document.getElementById('narrator-text');
+
+            p2PrepBtn.classList.add('hidden');
+            p2Timer.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+
+            if (state.currentPart === 1) {
+                indicator.innerText = "Part 1";
+                if (state.p1Index === -1) {
+                    narrator.innerText = "Introduction";
+                    display.innerText = "Now, in this first part, I'd like to ask you some personal questions. Are you ready?";
+                    nextBtn.innerText = "Start Recording Part 1";
+                } else {
+                    narrator.innerText = `Question ${state.p1Index + 1} of 5`;
+                    display.innerText = state.activeExam.p1[state.p1Index].text;
+                    nextBtn.innerText = (state.p1Index === state.activeExam.p1.length - 1) ? "Finish Part 1" : "Next Question";
+                    startPartRecording();
+                }
+            } 
+            else if (state.currentPart === 2) {
+                indicator.innerText = "Part 2";
+                if (state.p2Phase === 'intro') {
+                    narrator.innerText = "Instruction";
+                    display.innerText = "I'm going to give you a topic. You will have 1 minute to prepare.";
+                    nextBtn.classList.add('hidden');
+                    p2PrepBtn.classList.remove('hidden');
+                } else if (state.p2Phase === 'prep') {
+                    narrator.innerText = "Preparation (1 minute)";
+                    display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl text-lg italic border border-indigo-100 shadow-inner">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
+                    nextBtn.classList.add('hidden');
+                    p2Timer.classList.remove('hidden');
+                } else if (state.p2Phase === 'speak') {
+                    narrator.innerText = "Speaking (1-2 minutes)";
+                    display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl text-lg italic border border-indigo-100 shadow-inner">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
+                    nextBtn.innerText = "Finish Part 2";
+                    p2Timer.classList.remove('hidden');
+                    document.getElementById('p2-timer-label').innerText = "Speaking Time";
+                    startPartRecording();
+                }
+            }
+            else if (state.currentPart === 3) {
+                indicator.innerText = "Part 3";
+                if (state.p3Index === -1) {
+                    narrator.innerText = "Discussion";
+                    display.innerText = "Let's discuss more general questions about " + state.activeExam.topic;
+                    nextBtn.innerText = "Start Recording Part 3";
+                } else {
+                    narrator.innerText = `Question ${state.p3Index + 1} of 3`;
+                    display.innerText = state.activeExam.p3[state.p3Index];
+                    nextBtn.innerText = (state.p3Index === state.activeExam.p3.length - 1) ? "Finish Full Test" : "Next Question";
+                    startPartRecording();
+                }
+            }
+            speak(display.innerText);
+            try { lucide.createIcons(); } catch(e) {}
+        }
+
+        async function nextStep() {
+            if (state.currentPart === 1) {
+                if (state.p1Index === -1) {
+                    state.p1Index = 0;
+                } else if (state.p1Index === state.activeExam.p1.length - 1) {
+                    const blob = await stopPartRecording();
+                    await gradePart(1, blob);
+                    state.currentPart = 2;
+                } else {
+                    state.p1Index++;
+                }
+            } 
+            else if (state.currentPart === 2) {
+                const blob = await stopPartRecording();
+                await gradePart(2, blob);
+                state.currentPart = 3;
+            } 
+            else if (state.currentPart === 3) {
+                if (state.p3Index === -1) {
+                    state.p3Index = 0;
+                } else if (state.p3Index === state.activeExam.p3.length - 1) {
+                    const blob = await stopPartRecording();
+                    await gradePart(3, blob);
+                    showFinalReport();
+                    return;
+                } else {
+                    state.p3Index++;
+                }
+            }
+            updateFlow();
+        }
+
+        function startP2Prep() {
+            state.p2Phase = 'prep';
+            updateFlow(); 
+            document.getElementById('p2-timer-container').classList.remove('hidden');
+            document.getElementById('p2-prep-btn').classList.add('hidden');
+            
+            let time = 60;
+            const interval = setInterval(() => {
+                time--;
+                document.getElementById('p2-timer-countdown').innerText = `00:${time.toString().padStart(2, '0')}`;
+                if (time <= 0) {
+                    clearInterval(interval);
+                    const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                    chime.play().catch(() => {});
+                    speak("Time is up. Please start speaking now.");
+                    state.p2Phase = 'speak';
+                    setTimeout(() => { updateFlow(); }, 500);
+                }
+            }, 1000);
+        }
+
+        async function gradePart(num, blob) {
+            if (!blob) return;
+            const overlay = document.getElementById('grading-overlay');
+            overlay.classList.remove('hidden');
+
+            const base64 = await new Promise(r => {
+                const reader = new FileReader();
+                reader.onloadend = () => r(reader.result.split(',')[1]);
+                reader.readAsDataURL(blob);
+            });
+
+            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate Part ${num} based on 4 criteria. 
+            Return JSON only: { 
+                "overall": number, 
+                "fc": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
+                "lr": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
+                "gra": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
+                "p": {"score": number, "feedback": "chi tiết bằng tiếng Việt"},
+                "advice": "lời khuyên tổng quát tiếng Việt"
+            }`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: "audio/webm", data: base64 } }] }],
+                        systemInstruction: { parts: [{ text: prompt }] },
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+                const data = await response.json();
+                state.partResults[num] = JSON.parse(data.candidates[0].content.parts[0].text);
+            } catch (e) {
+                state.partResults[num] = { overall: 5.5, fc: {score:5.5, feedback:"Lỗi kết nối."}, lr: {score:5.5, feedback:""}, gra: {score:5.5, feedback:""}, p: {score:5.5, feedback:""}, advice: "Kiểm tra API." };
+            } finally {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function showFinalReport() {
+            document.getElementById('main-test-area').classList.add('hidden');
+            document.getElementById('final-audio-preview').classList.add('hidden');
+            document.getElementById('feedback-area').classList.remove('hidden');
+            
+            const getAvg = (key) => (state.partResults[1][key].score + state.partResults[2][key].score + state.partResults[3][key].score) / 3;
+            const avgFC = getAvg('fc'), avgLR = getAvg('lr'), avgGRA = getAvg('gra'), avgP = getAvg('p');
+            const roundedOverall = ieltsRounding((avgFC + avgLR + avgGRA + avgP) / 4);
+            
+            document.getElementById('final-score').innerText = roundedOverall.toFixed(1);
+            document.getElementById('criteria-scores-summary').innerHTML = [
+                { l: "Fluency", v: avgFC }, { l: "Lexical", v: avgLR }, { l: "Grammar", v: avgGRA }, { l: "Pronun", v: avgP }
+            ].map(c => `
+                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center">
+                    <div class="text-[10px] uppercase font-bold text-indigo-400 mb-1">${c.l}</div>
+                    <div class="text-2xl font-black text-indigo-700">${c.v.toFixed(1)}</div>
+                </div>
+            `).join('');
+
+            const details = [
+                { id: "FC", name: "Fluency & Coherence", data: state.partResults[3].fc },
+                { id: "LR", name: "Lexical Resource", data: state.partResults[3].lr },
+                { id: "GRA", name: "Grammar Accuracy", data: state.partResults[3].gra },
+                { id: "P", name: "Pronunciation", data: state.partResults[3].p }
+            ];
+            
+            document.getElementById('detailed-feedback-list').innerHTML = details.map(d => `
+                <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-start mb-3">
+                        <h5 class="font-bold text-slate-800">${d.name}</h5>
+                        <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold">Band ${d.data.score}</span>
+                    </div>
+                    <p class="text-slate-600 text-sm leading-relaxed">${d.data.feedback}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('final-advice').innerText = state.partResults[3].advice;
+            try { lucide.createIcons(); } catch(e) {}
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-GB';
+            window.speechSynthesis.speak(msg);
+        }
+
+        function repeatQuestion() {
+            const display = document.getElementById('question-display');
+            speak(display.innerText);
+        }
+    </script>
+</body>
+</html>
