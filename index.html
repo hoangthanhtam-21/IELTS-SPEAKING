@@ -72,7 +72,7 @@
                         <button id="speak-btn" onclick="repeatQuestion()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg transition-colors">
                             <i data-lucide="volume-2" class="w-5 h-5"></i> Repeat
                         </button>
-                        <button id="p2-prep-btn" onclick="startP2Prep()" class="hidden flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-bold transition-all">
+                        <button id="p2-prep-btn" onclick="startP2Prep()" class="hidden flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all">
                             Start Prep <i data-lucide="timer" class="w-5 h-5"></i>
                         </button>
                         <button id="next-btn" onclick="nextStep()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all">
@@ -147,33 +147,80 @@
                 { text: "Do you like shopping?" }, 
                 { text: "Do you compare prices when you shop? Why?" },
                 { text: "Is it difficult for you to make choices when you shop?" }, 
+                { text: "Do you think expensive products are always better than cheaper ones?" },
                 { text: "Do you think hobbies are important?" }, 
                 { text: "Which hobby do you like to try in the future?" },
                 { text: "What do you like to do on the weekends?" }, 
-                { text: "What kind of music do you listen to?" },
-                { text: "Who is your favorite celebrity in your country?" }, 
+                { text: "Do you like to spend your free time with families or friends?" },
+                { text: "What will you do if you go out?" },
+                { text: "What kind of TV programs do you like?" },
+                { text: "Do you prefer to read local news or international news?" },
+                { text: "Who is your favorite celebrity in your country?" },
+                { text: "What types of people become famous in your country?" },
                 { text: "Would you like to be a famous person?" },
-                { text: "Is there much pollution where you live?" }, 
+                { text: "Do you like any foreign celebrities?" },
+                { text: "How do celebrities influence their fans in your country?" },
+                { text: "Is there much pollution where you live?" },
+                { text: "Are residents in your town good at recycling waste?" },
                 { text: "Do you take an interest in nature?" },
-                { text: "What kinds of animals are popular pets in your country?" }
+                { text: "Have you ever participated in any environmental events?" },
+                { text: "What kinds of animals are popular pets in your country? Why?" },
+                { text: "Do you think pollution is a big problem nowadays?" }
             ],
             topicSets: [
                 {
                     topic: "Possessions & Shopping",
                     part2: "Describe something you own that you want to replace\nYou should say:\n• What it is\n• Where it is\n• How you got it\n• And explain why you want to replace it",
                     part3: [
-                        "What risks would you take when shopping online?",
-                        "Will large shopping malls continue to be popular in the future?",
-                        "Does consumption have any impact on the environment?"
+                        "What risks would you take when shopping online? Why?",
+                        "Will large shopping malls continue to be popular, despite the growth of internet shopping?",
+                        "What are the disadvantages of shopping in a street market?",
+                        "Why do you think some people replace things more often than others?",
+                        "Does consumption have any impact on the environment?",
+                        "Is advertising important?"
+                    ]
+                },
+                {
+                    topic: "Shopping Centers",
+                    part2: "Describe a shopping center you often go to.\nYou should say:\n• Where is it?\n• How often do you go there?\n• How is its appearance?\n• Why do you often go there?",
+                    part3: [
+                        "What risks would you take when shopping online? Why?",
+                        "Will large shopping malls continue to be popular, despite the growth of internet shopping?",
+                        "What are the disadvantages of shopping in a street market?",
+                        "Why do you think some people replace things more often than others?",
+                        "Does consumption have any impact on the environment?",
+                        "Is advertising important?"
                     ]
                 },
                 {
                     topic: "Leisure Time",
-                    part2: "Describe your leisure time. You should say:\n• How you usually spend it\n• Who you prefer to spend it with\n• And explain why leisure time is important to you",
+                    part2: "Describe your leisure time. You should say:\n• How you usually spend your leisure time\n• Who you prefer to spend your leisure time with\n• What leisure activities are popular in your country\n• And explain why leisure time is important to you",
                     part3: [
                         "How has the way we spend free time changed over the years?",
+                        "Do you think only old people have time for leisure?",
                         "Do women have more leisure time than men?",
-                        "Why are traditional leisure activities losing popularity?"
+                        "Some people believe that traditional leisure activities are losing popularity. Why do you think this is happening?",
+                        "Do you think it’s important for people to try new leisure activities? Why?"
+                    ]
+                },
+                {
+                    topic: "Famous People & News",
+                    part2: "Describe a famous person who is not from your country you would like to meet.\nYou should say:\n• Who that person is\n• Why you admire him/her\n• What would you say if you met him/her",
+                    part3: [
+                        "Do you think the internet influences the types of news stories people hear about?",
+                        "Why do you think the internet is becoming a more popular source of news?",
+                        "What are some of the disadvantages of being a celebrity?",
+                        "What are some of the advantages of being a celebrity?",
+                        "Do you think the media is putting too much attention on famous people?",
+                        "How do most people find out about the news in your country?"
+                    ]
+                },
+                {
+                    topic: "Environmental Problems",
+                    part2: "Describe an environmental problem in your hometown.\nYou should say:\n• What problem is it?\n• What causes the problem?\n• What can be done to address the problem?",
+                    part3: [
+                        "What do you think is the main danger the world faces in terms of the environment?",
+                        "In which way do people damage our planet?"
                     ]
                 }
             ]
@@ -191,7 +238,8 @@
             timer: 0,
             timerId: null,
             partResults: { 1: null, 2: null, 3: null },
-            lastBlob: null
+            lastBlob: null,
+            p2SpeakingInterval: null
         };
 
         function ieltsRounding(score) {
@@ -205,8 +253,11 @@
             const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5);
             const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
             
+            // Xáo trộn và lấy tối đa 3 câu hỏi cho Part 3
+            const shuffledP3 = [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3);
+            
             state = {
-                activeExam: { p1: shuffledP1, p2: randomSet.part2, p3: randomSet.part3, topic: randomSet.topic },
+                activeExam: { p1: shuffledP1, p2: randomSet.part2, p3: shuffledP3, topic: randomSet.topic },
                 currentPart: 1,
                 p1Index: -1,
                 p3Index: -1,
@@ -314,7 +365,7 @@
                     nextBtn.classList.add('hidden');
                     p2Timer.classList.remove('hidden');
                 } else if (state.p2Phase === 'speak') {
-                    narrator.innerText = "Speaking (1-2 minutes)";
+                    narrator.innerText = "Speaking (2 minutes)";
                     display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl text-lg italic border border-indigo-100 shadow-inner">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
                     nextBtn.innerText = "Finish Part 2";
                     p2Timer.classList.remove('hidden');
@@ -329,17 +380,27 @@
                     display.innerText = "Let's discuss more general questions about " + state.activeExam.topic;
                     nextBtn.innerText = "Start Recording Part 3";
                 } else {
-                    narrator.innerText = `Question ${state.p3Index + 1} of 3`;
+                    // Cập nhật số lượng câu hỏi thực tế trong Part 3 (tối đa 3)
+                    narrator.innerText = `Question ${state.p3Index + 1} of ${state.activeExam.p3.length}`;
                     display.innerText = state.activeExam.p3[state.p3Index];
                     nextBtn.innerText = (state.p3Index === state.activeExam.p3.length - 1) ? "Finish Full Test" : "Next Question";
                     startPartRecording();
                 }
             }
-            speak(display.innerText);
+            
+            if (!(state.currentPart === 2 && state.p2Phase === 'speak')) {
+                speak(display.innerText);
+            }
+            
             try { lucide.createIcons(); } catch(e) {}
         }
 
         async function nextStep() {
+            if (state.p2SpeakingInterval) {
+                clearInterval(state.p2SpeakingInterval);
+                state.p2SpeakingInterval = null;
+            }
+
             if (state.currentPart === 1) {
                 if (state.p1Index === -1) {
                     state.p1Index = 0;
@@ -385,15 +446,46 @@
                     clearInterval(interval);
                     const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                     chime.play().catch(() => {});
-                    speak("Time is up. Please start speaking now.");
-                    state.p2Phase = 'speak';
-                    setTimeout(() => { updateFlow(); }, 500);
+                    
+                    window.speechSynthesis.cancel();
+                    const promptMsg = new SpeechSynthesisUtterance("Time is up. Please start speaking now.");
+                    promptMsg.lang = 'en-GB';
+                    
+                    promptMsg.onend = () => {
+                        state.p2Phase = 'speak';
+                        updateFlow(); 
+                        
+                        let speakTime = 120;
+                        document.getElementById('p2-timer-countdown').innerText = "02:00";
+                        
+                        if (state.p2SpeakingInterval) clearInterval(state.p2SpeakingInterval);
+                        state.p2SpeakingInterval = setInterval(() => {
+                            speakTime--;
+                            const m = Math.floor(speakTime / 60);
+                            const s = speakTime % 60;
+                            document.getElementById('p2-timer-countdown').innerText = 
+                                `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                            
+                            if (speakTime <= 0) {
+                                clearInterval(state.p2SpeakingInterval);
+                                state.p2SpeakingInterval = null;
+                                speak("Thank you. Time is up.");
+                            }
+                        }, 1000);
+                    };
+                    
+                    window.speechSynthesis.speak(promptMsg);
                 }
             }, 1000);
         }
 
         async function gradePart(num, blob) {
-            if (!blob) return;
+            // Đảm bảo state.partResults[num] luôn được khởi tạo để tránh lỗi null
+            if (!blob) {
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không phát hiện giọng nói."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra lại micro của bạn." };
+                return;
+            }
+            
             const overlay = document.getElementById('grading-overlay');
             overlay.classList.remove('hidden');
 
@@ -404,6 +496,7 @@
             });
 
             const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate Part ${num} based on 4 criteria. 
+            IMPORTANT: If the audio is silent, contains only background noise, or no clear speech is detected, you MUST assign 0 for all scores and state "No speech detected" in feedback.
             Return JSON only: { 
                 "overall": number, 
                 "fc": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
@@ -426,7 +519,8 @@
                 const data = await response.json();
                 state.partResults[num] = JSON.parse(data.candidates[0].content.parts[0].text);
             } catch (e) {
-                state.partResults[num] = { overall: 5.5, fc: {score:5.5, feedback:"Lỗi kết nối."}, lr: {score:5.5, feedback:""}, gra: {score:5.5, feedback:""}, p: {score:5.5, feedback:""}, advice: "Kiểm tra API." };
+                console.error("Grading failed for Part " + num, e);
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Lỗi kết nối hoặc không có dữ liệu âm thanh."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra lại kết nối mạng hoặc micro." };
             } finally {
                 overlay.classList.add('hidden');
             }
@@ -437,7 +531,14 @@
             document.getElementById('final-audio-preview').classList.add('hidden');
             document.getElementById('feedback-area').classList.remove('hidden');
             
-            const getAvg = (key) => (state.partResults[1][key].score + state.partResults[2][key].score + state.partResults[3][key].score) / 3;
+            // Thêm kiểm tra an toàn (safe check) cho getAvg
+            const getAvg = (key) => {
+                const p1 = state.partResults[1]?.[key]?.score || 0;
+                const p2 = state.partResults[2]?.[key]?.score || 0;
+                const p3 = state.partResults[3]?.[key]?.score || 0;
+                return (p1 + p2 + p3) / 3;
+            };
+
             const avgFC = getAvg('fc'), avgLR = getAvg('lr'), avgGRA = getAvg('gra'), avgP = getAvg('p');
             const roundedOverall = ieltsRounding((avgFC + avgLR + avgGRA + avgP) / 4);
             
@@ -452,28 +553,29 @@
             `).join('');
 
             const details = [
-                { id: "FC", name: "Fluency & Coherence", data: state.partResults[3].fc },
-                { id: "LR", name: "Lexical Resource", data: state.partResults[3].lr },
-                { id: "GRA", name: "Grammar Accuracy", data: state.partResults[3].gra },
-                { id: "P", name: "Pronunciation", data: state.partResults[3].p }
+                { id: "FC", name: "Fluency & Coherence", score: avgFC, data: state.partResults[3]?.fc || state.partResults[2]?.fc || state.partResults[1]?.fc || {feedback: "N/A"} },
+                { id: "LR", name: "Lexical Resource", score: avgLR, data: state.partResults[3]?.lr || state.partResults[2]?.lr || state.partResults[1]?.lr || {feedback: "N/A"} },
+                { id: "GRA", name: "Grammar Accuracy", score: avgGRA, data: state.partResults[3]?.gra || state.partResults[2]?.gra || state.partResults[1]?.gra || {feedback: "N/A"} },
+                { id: "P", name: "Pronunciation", score: avgP, data: state.partResults[3]?.p || state.partResults[2]?.p || state.partResults[1]?.p || {feedback: "N/A"} }
             ];
             
             document.getElementById('detailed-feedback-list').innerHTML = details.map(d => `
                 <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
                     <div class="flex justify-between items-start mb-3">
                         <h5 class="font-bold text-slate-800">${d.name}</h5>
-                        <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold">Band ${d.data.score}</span>
+                        <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold">Band ${d.score.toFixed(1)}</span>
                     </div>
                     <p class="text-slate-600 text-sm leading-relaxed">${d.data.feedback}</p>
                 </div>
             `).join('');
 
-            document.getElementById('final-advice').innerText = state.partResults[3].advice;
+            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || state.partResults[2]?.advice || "Hệ thống không nhận diện được đủ dữ liệu để đưa ra lời khuyên cụ thể.";
             try { lucide.createIcons(); } catch(e) {}
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function speak(text) {
+            if (!text) return;
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-GB';
