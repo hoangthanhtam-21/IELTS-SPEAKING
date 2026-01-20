@@ -250,10 +250,12 @@
         }
 
         function generateExam() {
+            // Mở khóa SpeechSynthesis cho mobile bằng cách gọi ngay lập tức từ một user interaction
+            speak(""); 
+
             const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5);
             const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
             
-            // Xáo trộn và lấy tối đa 3 câu hỏi cho Part 3
             const shuffledP3 = [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3);
             
             state = {
@@ -380,7 +382,6 @@
                     display.innerText = "Let's discuss more general questions about " + state.activeExam.topic;
                     nextBtn.innerText = "Start Recording Part 3";
                 } else {
-                    // Cập nhật số lượng câu hỏi thực tế trong Part 3 (tối đa 3)
                     narrator.innerText = `Question ${state.p3Index + 1} of ${state.activeExam.p3.length}`;
                     display.innerText = state.activeExam.p3[state.p3Index];
                     nextBtn.innerText = (state.p3Index === state.activeExam.p3.length - 1) ? "Finish Full Test" : "Next Question";
@@ -444,14 +445,17 @@
                 document.getElementById('p2-timer-countdown').innerText = `00:${time.toString().padStart(2, '0')}`;
                 if (time <= 0) {
                     clearInterval(interval);
+                    
                     const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                    chime.play().catch(() => {});
+                    chime.play().catch((err) => { console.log("Audio play blocked on mobile", err); });
                     
                     window.speechSynthesis.cancel();
                     const promptMsg = new SpeechSynthesisUtterance("Time is up. Please start speaking now.");
                     promptMsg.lang = 'en-GB';
-                    
-                    promptMsg.onend = () => {
+
+                    // Hàm bắt đầu đếm ngược 2 phút nói (tách riêng để gọi từ nhiều nguồn)
+                    const startP2SpeakingTimer = () => {
+                        if (state.p2Phase === 'speak') return; // Tránh chạy 2 lần
                         state.p2Phase = 'speak';
                         updateFlow(); 
                         
@@ -474,13 +478,21 @@
                         }, 1000);
                     };
                     
+                    // Fallback an toàn: Nếu SpeechSynthesis bị treo trên mobile (lỗi hay gặp), 
+                    // hệ thống sẽ tự động chuyển sang Part nói sau 3 giây.
+                    const safetyTimeout = setTimeout(startP2SpeakingTimer, 3500);
+
+                    promptMsg.onend = () => {
+                        clearTimeout(safetyTimeout);
+                        startP2SpeakingTimer();
+                    };
+                    
                     window.speechSynthesis.speak(promptMsg);
                 }
             }, 1000);
         }
 
         async function gradePart(num, blob) {
-            // Đảm bảo state.partResults[num] luôn được khởi tạo để tránh lỗi null
             if (!blob) {
                 state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không phát hiện giọng nói."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra lại micro của bạn." };
                 return;
@@ -531,7 +543,6 @@
             document.getElementById('final-audio-preview').classList.add('hidden');
             document.getElementById('feedback-area').classList.remove('hidden');
             
-            // Thêm kiểm tra an toàn (safe check) cho getAvg
             const getAvg = (key) => {
                 const p1 = state.partResults[1]?.[key]?.score || 0;
                 const p2 = state.partResults[2]?.[key]?.score || 0;
@@ -575,8 +586,10 @@
         }
 
         function speak(text) {
-            if (!text) return;
+            // SpeechSynthesis.cancel() giúp giải phóng engine trên một số trình duyệt mobile
             window.speechSynthesis.cancel();
+            if (!text) return;
+            
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-GB';
             window.speechSynthesis.speak(msg);
