@@ -91,7 +91,7 @@
 
                 <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
                     <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Lời khuyên của giám khảo cho Part này:</h4>
-                    <p id="part-feedback-brief" class="text-slate-600 text-sm italic leading-relaxed"></p>
+                    <div id="part-feedback-brief" class="text-slate-600 text-sm italic leading-relaxed"></div>
                 </div>
 
                 <div class="text-center">
@@ -511,7 +511,7 @@
                         <span class="text-xs font-bold text-indigo-700 uppercase">${c.name}</span>
                         <span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Band ${c.data.score.toFixed(1)}</span>
                     </div>
-                    <p class="text-[11px] text-slate-600 leading-tight line-clamp-3">${c.data.feedback}</p>
+                    <p class="text-[11px] text-slate-600 leading-tight">${c.data.feedback}</p>
                 </div>
             `).join('');
             
@@ -564,7 +564,17 @@
             const base64 = await new Promise(r => {
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
-            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. Provide scores for 4 criteria and a final advice in Vietnamese. Return JSON only: { "overall": number, "fc": {"score": number, "feedback": "chi tiết"}, "lr": {"score": number, "feedback": "chi tiết"}, "gra": {"score": number, "feedback": "chi tiết"}, "p": {"score": number, "feedback": "chi tiết"}, "advice": "lời khuyên" }`;
+            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. 
+            For each of the 4 criteria, provide a comprehensive and detailed evaluation in Vietnamese (at least 2-3 sentences per criteria) highlighting specific strengths, weaknesses, and examples if possible.
+            Return JSON only in this exact format: 
+            { 
+              "overall": number, 
+              "fc": {"score": number, "feedback": "nhận xét chi tiết"}, 
+              "lr": {"score": number, "feedback": "nhận xét chi tiết"}, 
+              "gra": {"score": number, "feedback": "nhận xét chi tiết"}, 
+              "p": {"score": number, "feedback": "nhận xét chi tiết"}, 
+              "advice": "lời khuyên cụ thể để cải thiện" 
+            }`;
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             let success = false;
