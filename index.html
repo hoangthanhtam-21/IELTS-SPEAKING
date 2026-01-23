@@ -321,7 +321,6 @@
                     document.getElementById('audio-playback').src = URL.createObjectURL(blob);
                     document.getElementById('final-audio-preview').classList.remove('hidden');
                     
-                    // Cleanup AudioContext
                     if (state.audioContext) state.audioContext.close();
                     
                     resolve(blob);
@@ -448,9 +447,9 @@
             const overlay = document.getElementById('grading-overlay');
             overlay.classList.remove('hidden');
             
-            // Validate blob size
-            if (!blob || blob.size < 5000) { // Less than 5KB is likely failure
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không ghi nhận được âm thanh nói. Vui lòng kiểm tra Micro."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra quyền micro trên trình duyệt." };
+            // Đã giảm ngưỡng kiểm tra xuống 1000 bytes (1KB) để hỗ trợ câu trả lời ngắn
+            if (!blob || blob.size < 1000) { 
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không ghi nhận được âm thanh nói đủ dài. Vui lòng kiểm tra Micro hoặc nói to hơn."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng đảm bảo micro đang hoạt động và bạn đã cho phép trình duyệt truy cập." };
                 overlay.classList.add('hidden');
                 return;
             }
@@ -459,15 +458,19 @@
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
 
-            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate Part ${num} based on 4 criteria. 
-            IMPORTANT: If the audio is silent or no clear speech is detected, assign 0.
+            // Cập nhật Prompt để AI nhạy bén hơn với giọng nói và ít khắt khe với tiếng ồn
+            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}.
+            INSTRUCTIONS:
+            - If the audio contains human speech, evaluate it fairly even if there is background noise.
+            - Focus only on the human voice and disregard silence or environmental sounds.
+            - Provide scores for 4 criteria and a final advice in Vietnamese.
             Return JSON only: { 
                 "overall": number, 
-                "fc": {"score": number, "feedback": "chi tiết tiếng Việt"}, 
-                "lr": {"score": number, "feedback": "chi tiết tiếng Việt"}, 
-                "gra": {"score": number, "feedback": "chi tiết tiếng Việt"}, 
-                "p": {"score": number, "feedback": "chi tiết tiếng Việt"},
-                "advice": "lời khuyên tiếng Việt"
+                "fc": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
+                "lr": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
+                "gra": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
+                "p": {"score": number, "feedback": "chi tiết bằng tiếng Việt"},
+                "advice": "lời khuyên tổng quát bằng tiếng Việt"
             }`;
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
@@ -478,7 +481,7 @@
                         method: 'POST', 
                         headers: { 'Content-Type': 'application/json' }, 
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }],
+                            contents: [{ parts: [{ text: "Please evaluate this IELTS Speaking response for Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }],
                             systemInstruction: { parts: [{ text: prompt }] },
                             generationConfig: { responseMimeType: "application/json" }
                         }) 
@@ -493,7 +496,7 @@
             }
 
             if (!success) {
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không thể kết nối với máy chủ chấm điểm."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Kiểm tra mạng." };
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không thể kết nối với máy chủ chấm điểm sau nhiều lần thử."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra lại kết nối Internet." };
             }
             overlay.classList.add('hidden');
         }
@@ -512,6 +515,7 @@
             document.getElementById('criteria-scores-summary').innerHTML = [
                 { l: "Fluency", v: avgFC }, { l: "Lexical", v: avgLR }, { l: "Grammar", v: avgGRA }, { l: "Pronun", v: avgP }
             ].map(c => `<div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center"><div class="text-[10px] uppercase font-bold text-indigo-400 mb-1">${c.l}</div><div class="text-2xl font-black text-indigo-700">${c.v.toFixed(1)}</div></div>`).join('');
+            
             const details = [
                 { name: "Fluency & Coherence", score: avgFC, data: state.partResults[3]?.fc || state.partResults[2]?.fc || state.partResults[1]?.fc || {feedback: "N/A"} },
                 { name: "Lexical Resource", score: avgLR, data: state.partResults[3]?.lr || state.partResults[2]?.lr || state.partResults[1]?.lr || {feedback: "N/A"} },
@@ -527,7 +531,7 @@
                     <p class="text-slate-600 text-sm leading-relaxed">${d.data.feedback}</p>
                 </div>
             `).join('');
-            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || state.partResults[2]?.advice || "N/A";
+            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || state.partResults[2]?.advice || "Hệ thống không thu thập đủ dữ liệu để đưa ra lời khuyên cụ thể.";
             try { lucide.createIcons(); } catch(e) {}
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
