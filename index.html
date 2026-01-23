@@ -30,11 +30,32 @@
                 </h1>
                 <p class="text-slate-500">Full Question Bank & 4-Criteria Assessment</p>
             </div>
-            <button onclick="generateExam()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg active:scale-95">
-                <i data-lucide="play" class="w-5 h-5"></i>
-                Start Full Mock Test
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSettings()" class="p-3 bg-white rounded-xl shadow-sm border border-slate-200 hover:bg-slate-50 transition-all text-slate-500" title="Cài đặt API Key">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                <button onclick="generateExam()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg active:scale-95">
+                    <i data-lucide="play" class="w-5 h-5"></i>
+                    Start Full Mock Test
+                </button>
+            </div>
         </header>
+
+        <!-- API Key Settings Modal -->
+        <div id="settings-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="key" class="text-indigo-600"></i>
+                    Cấu hình API Key
+                </h3>
+                <p class="text-sm text-slate-500 mb-6">Để ứng dụng hoạt động trên GitHub, bạn cần nhập Google Gemini API Key của mình. Key sẽ được lưu an toàn trong trình duyệt của bạn.</p>
+                <input type="password" id="api-key-input" placeholder="Nhập Gemini API Key tại đây..." class="w-full p-4 bg-slate-100 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:outline-none mb-6 transition-all">
+                <div class="flex gap-3">
+                    <button onclick="toggleSettings()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Đóng</button>
+                    <button onclick="saveApiKey()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">Lưu lại</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Welcome Screen -->
         <div id="welcome-screen" class="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-100">
@@ -100,7 +121,7 @@
                         <button id="speak-btn" onclick="repeatQuestion()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg transition-colors">
                             <i data-lucide="volume-2" class="w-5 h-5"></i> Repeat
                         </button>
-                        <button id="p2-prep-btn" onclick="startP2Prep()" class="hidden flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all">
+                        <button id="p2-prep-btn" onclick="startP2Prep()" class="hidden flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl shadow-md transition-all">
                             Start Prep <i data-lucide="timer" class="w-5 h-5"></i>
                         </button>
                         <button id="next-btn" onclick="nextStep()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all">
@@ -172,7 +193,8 @@
     </div>
 
     <script>
-        const apiKey = ""; 
+        // API Key logic: Lấy từ localStorage nếu chạy trên GitHub
+        let apiKey = localStorage.getItem('ielts_gemini_api_key') || ""; 
 
         const QUESTION_BANK = {
             part1: [
@@ -261,7 +283,32 @@
             return Math.ceil(score);
         }
 
+        // Settings functions
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                document.getElementById('api-key-input').value = apiKey;
+            }
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('api-key-input').value.trim();
+            if (val) {
+                apiKey = val;
+                localStorage.setItem('ielts_gemini_api_key', val);
+                toggleSettings();
+            } else {
+                alert("Vui lòng nhập API Key.");
+            }
+        }
+
         function generateExam() {
+            // Check if API key is set when not in preview mode
+            if (!apiKey) {
+                toggleSettings();
+                return;
+            }
             speak(""); 
             const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5);
             const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
@@ -318,7 +365,10 @@
                     const m = Math.floor(state.timer / 60); const s = state.timer % 60;
                     document.getElementById('timer-display').innerText = `${m}:${s.toString().padStart(2, '0')}`;
                 }, 1000);
-            } catch (err) { alert("Microphone access denied."); }
+            } catch (err) { 
+                console.error("Microphone error:", err);
+                alert("Lỗi Micro: " + err.message + ". Hãy đảm bảo bạn đang sử dụng HTTPS và đã cấp quyền Micro."); 
+            }
         }
 
         function stopPartRecording() {
@@ -515,21 +565,35 @@
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
             const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. Provide scores for 4 criteria and a final advice in Vietnamese. Return JSON only: { "overall": number, "fc": {"score": number, "feedback": "chi tiết"}, "lr": {"score": number, "feedback": "chi tiết"}, "gra": {"score": number, "feedback": "chi tiết"}, "p": {"score": number, "feedback": "chi tiết"}, "advice": "lời khuyên" }`;
+            
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             let success = false;
             for (let i = 0; i < 5; i++) {
                 try {
-                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }], systemInstruction: { parts: [{ text: prompt }] }, generationConfig: { responseMimeType: "application/json" } }) });
+                    const response = await fetch(url, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ 
+                            contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }], 
+                            systemInstruction: { parts: [{ text: prompt }] }, 
+                            generationConfig: { responseMimeType: "application/json" } 
+                        }) 
+                    });
                     if (response.ok) {
                         const data = await response.json();
                         state.partResults[num] = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
                         success = true; break;
+                    } else if (response.status === 403) {
+                        throw new Error("API Key không hợp lệ hoặc không có quyền truy cập.");
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error("Fetch attempt " + (i+1) + " failed:", e);
+                    if (i === 4) alert("Lỗi kết nối AI: " + e.message);
+                }
                 await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
             }
             if (!success) {
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:""}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Lỗi kết nối." };
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:""}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Lỗi kết nối API. Hãy kiểm tra lại API Key." };
             }
             overlay.classList.add('hidden');
         }
@@ -575,6 +639,11 @@
         }
 
         function repeatQuestion() { speak(document.getElementById('question-display').innerText); }
+
+        // Initial check for Lucide icons
+        window.onload = () => {
+            try { lucide.createIcons(); } catch(e) {}
+        };
     </script>
 </body>
 </html>
