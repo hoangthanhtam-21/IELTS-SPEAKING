@@ -31,7 +31,7 @@
                 <p class="text-slate-500">Full Question Bank & 4-Criteria Assessment</p>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="toggleSettings()" class="p-3 bg-white rounded-xl shadow-sm border border-slate-200 hover:bg-slate-50 transition-all text-slate-500" title="Cài đặt API Key">
+                <button id="settings-btn" onclick="toggleSettings()" class="p-3 bg-white rounded-xl shadow-sm border border-slate-200 hover:bg-slate-50 transition-all text-slate-500" title="Cài đặt API Key">
                     <i data-lucide="settings" class="w-5 h-5"></i>
                 </button>
                 <button onclick="generateExam()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg active:scale-95">
@@ -48,7 +48,7 @@
                     <i data-lucide="key" class="text-indigo-600"></i>
                     Cấu hình API Key
                 </h3>
-                <p class="text-sm text-slate-500 mb-6">Để ứng dụng hoạt động trên GitHub, bạn cần nhập Google Gemini API Key của mình. Key sẽ được lưu an toàn trong trình duyệt của bạn.</p>
+                <p class="text-sm text-slate-500 mb-6">Bạn có thể sử dụng Key mặc định của giáo viên hoặc tự nhập Key cá nhân của mình vào đây.</p>
                 <input type="password" id="api-key-input" placeholder="Nhập Gemini API Key tại đây..." class="w-full p-4 bg-slate-100 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:outline-none mb-6 transition-all">
                 <div class="flex gap-3">
                     <button onclick="toggleSettings()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Đóng</button>
@@ -193,8 +193,16 @@
     </div>
 
     <script>
-        // API Key logic: Lấy từ localStorage nếu chạy trên GitHub
-        let apiKey = localStorage.getItem('ielts_gemini_api_key') || ""; 
+        /**
+         * HƯỚNG DẪN CHO GIÁO VIÊN:
+         * 1. Lấy API Key từ aistudio.google.com
+         * 2. Dán Key vào giữa dấu ngoặc kép ở biến HARDCODED_API_KEY bên dưới.
+         * 3. Lưu file và đẩy lên GitHub.
+         * 4. Học sinh sẽ không cần nhập Key nữa.
+         */
+        const HARDCODED_API_KEY = ""; // <--- DÁN KEY CỦA BẠN VÀO ĐÂY
+
+        let apiKey = HARDCODED_API_KEY || localStorage.getItem('ielts_gemini_api_key') || ""; 
 
         const QUESTION_BANK = {
             part1: [
@@ -304,7 +312,7 @@
         }
 
         function generateExam() {
-            // Check if API key is set when not in preview mode
+            // Check if API key is set
             if (!apiKey) {
                 toggleSettings();
                 return;
