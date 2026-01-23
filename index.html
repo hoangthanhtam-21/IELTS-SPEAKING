@@ -14,6 +14,8 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 10px; }
+        /* Waveform Animation */
+        .bar { width: 4px; height: 16px; background: #6366f1; border-radius: 2px; transition: height 0.1s ease; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -58,7 +60,7 @@
                     <div id="part-indicator" class="mb-2 px-4 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-widest">Part 1</div>
                     <div id="narrator-text" class="text-slate-500 italic mb-4">The examiner is preparing...</div>
                     
-                    <div id="question-display" class="text-2xl md:text-3xl font-bold text-slate-800 mb-8 min-h-[120px] flex items-center justify-center animate-fade-in">
+                    <div id="question-display" class="text-2xl md:text-3xl font-bold text-slate-800 mb-8 min-h-[120px] flex items-center justify-center animate-fade-in text-center px-4">
                         Question will appear here
                     </div>
 
@@ -84,14 +86,18 @@
 
             <!-- Rec Area -->
             <section id="recording-section" class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl flex items-center justify-between hidden">
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-6">
                     <div id="rec-dot" class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <div>
+                    <div class="flex flex-col">
                         <div class="text-xs uppercase font-bold text-slate-400 tracking-tighter">Recording Part <span id="rec-part-num">1</span></div>
                         <div id="timer-display" class="text-2xl font-mono font-bold">0:00</div>
                     </div>
                 </div>
-                <div class="text-right">
+                <!-- Visual Feedback for Mic -->
+                <div class="flex items-center gap-1 h-8" id="visualizer-bars">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+                <div class="text-right hidden sm:block">
                     <p class="text-[10px] text-slate-500 uppercase font-bold">Auto-capturing Audio</p>
                     <p class="text-xs italic text-indigo-300">Speaking now...</p>
                 </div>
@@ -144,28 +150,17 @@
 
         const QUESTION_BANK = {
             part1: [
-                { text: "Do you like shopping?" }, 
-                { text: "Do you compare prices when you shop? Why?" },
-                { text: "Is it difficult for you to make choices when you shop?" }, 
-                { text: "Do you think expensive products are always better than cheaper ones?" },
-                { text: "Do you think hobbies are important?" }, 
-                { text: "Which hobby do you like to try in the future?" },
-                { text: "What do you like to do on the weekends?" }, 
-                { text: "Do you like to spend your free time with families or friends?" },
-                { text: "What will you do if you go out?" },
-                { text: "What kind of TV programs do you like?" },
-                { text: "Do you prefer to read local news or international news?" },
-                { text: "Who is your favorite celebrity in your country?" },
-                { text: "What types of people become famous in your country?" },
-                { text: "Would you like to be a famous person?" },
-                { text: "Do you like any foreign celebrities?" },
-                { text: "How do celebrities influence their fans in your country?" },
-                { text: "Is there much pollution where you live?" },
-                { text: "Are residents in your town good at recycling waste?" },
-                { text: "Do you take an interest in nature?" },
-                { text: "Have you ever participated in any environmental events?" },
-                { text: "What kinds of animals are popular pets in your country? Why?" },
-                { text: "Do you think pollution is a big problem nowadays?" }
+                { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop? Why?" },
+                { text: "Is it difficult for you to make choices when you shop?" }, { text: "Do you think expensive products are always better than cheaper ones?" },
+                { text: "Do you think hobbies are important?" }, { text: "Which hobby do you like to try in the future?" },
+                { text: "What do you like to do on the weekends?" }, { text: "Do you like to spend your free time with families or friends?" },
+                { text: "What will you do if you go out?" }, { text: "What kind of TV programs do you like?" },
+                { text: "Do you prefer to read local news or international news?" }, { text: "Who is your favorite celebrity in your country?" },
+                { text: "What types of people become famous in your country?" }, { text: "Would you like to be a famous person?" },
+                { text: "Do you like any foreign celebrities?" }, { text: "How do celebrities influence their fans in your country?" },
+                { text: "Is there much pollution where you live?" }, { text: "Are residents in your town good at recycling waste?" },
+                { text: "Do you take an interest in nature?" }, { text: "Have you ever participated in any environmental events?" },
+                { text: "What kinds of animals are popular pets in your country? Why?" }, { text: "Do you think pollution is a big problem nowadays?" }
             ],
             topicSets: [
                 {
@@ -227,19 +222,10 @@
         };
 
         let state = {
-            activeExam: null,
-            currentPart: 1,
-            p1Index: -1,
-            p3Index: -1,
-            p2Phase: 'intro',
-            mediaRecorder: null,
-            audioChunks: [],
-            isRecording: false,
-            timer: 0,
-            timerId: null,
-            partResults: { 1: null, 2: null, 3: null },
-            lastBlob: null,
-            p2SpeakingInterval: null
+            activeExam: null, currentPart: 1, p1Index: -1, p3Index: -1, p2Phase: 'intro',
+            mediaRecorder: null, audioChunks: [], isRecording: false, timer: 0, timerId: null,
+            partResults: { 1: null, 2: null, 3: null }, lastBlob: null, p2SpeakingInterval: null,
+            audioContext: null, analyser: null, visualizerId: null
         };
 
         function ieltsRounding(score) {
@@ -256,14 +242,10 @@
             const shuffledP3 = [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3);
             
             state = {
+                ...state,
                 activeExam: { p1: shuffledP1, p2: randomSet.part2, p3: shuffledP3, topic: randomSet.topic },
-                currentPart: 1,
-                p1Index: -1,
-                p3Index: -1,
-                p2Phase: 'intro',
-                audioChunks: [],
-                partResults: { 1: null, 2: null, 3: null },
-                isRecording: false
+                currentPart: 1, p1Index: -1, p3Index: -1, p2Phase: 'intro', audioChunks: [],
+                partResults: { 1: null, 2: null, 3: null }, isRecording: false
             };
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('exam-container').classList.remove('hidden');
@@ -276,7 +258,30 @@
             if (state.isRecording) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // Check supported types
+                
+                // Visualizer Setup
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                state.analyser = state.audioContext.createAnalyser();
+                const source = state.audioContext.createMediaStreamSource(stream);
+                source.connect(state.analyser);
+                state.analyser.fftSize = 64;
+                const bufferLength = state.analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                const bars = document.querySelectorAll('.bar');
+                function draw() {
+                    if (!state.isRecording) return;
+                    state.visualizerId = requestAnimationFrame(draw);
+                    state.analyser.getByteFrequencyData(dataArray);
+                    bars.forEach((bar, i) => {
+                        const val = dataArray[i] || 0;
+                        const height = Math.max(4, val / 4);
+                        bar.style.height = `${height}px`;
+                    });
+                }
+                draw();
+
+                // Recorder Setup
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
                 state.mediaRecorder = new MediaRecorder(stream, { mimeType });
                 state.audioChunks = [];
@@ -294,7 +299,7 @@
                 }, 1000);
             } catch (err) { 
                 console.error("Mic access error:", err);
-                alert("Hệ thống không thể truy cập Micro. Vui lòng kiểm tra quyền cài đặt trình duyệt."); 
+                alert("Hệ thống không thể truy cập Micro. Vui lòng kiểm tra quyền cài đặt trình duyệt và HTTPS."); 
             }
         }
 
@@ -303,6 +308,7 @@
                 if (!state.mediaRecorder || state.mediaRecorder.state === "inactive") {
                     state.isRecording = false;
                     clearInterval(state.timerId);
+                    cancelAnimationFrame(state.visualizerId);
                     return resolve(null);
                 }
                 state.mediaRecorder.onstop = () => {
@@ -310,13 +316,27 @@
                     state.lastBlob = blob;
                     state.isRecording = false;
                     clearInterval(state.timerId);
+                    cancelAnimationFrame(state.visualizerId);
                     document.getElementById('recording-section').classList.add('hidden');
                     document.getElementById('audio-playback').src = URL.createObjectURL(blob);
                     document.getElementById('final-audio-preview').classList.remove('hidden');
+                    
+                    // Cleanup AudioContext
+                    if (state.audioContext) state.audioContext.close();
+                    
                     resolve(blob);
                 };
                 state.mediaRecorder.stop();
             });
+        }
+
+        function downloadRecording() {
+            if (!state.lastBlob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(state.lastBlob);
+            const ext = state.lastBlob.type.includes('mp4') ? 'mp4' : 'webm';
+            a.download = `ielts-part-${state.currentPart}-${Date.now()}.${ext}`;
+            a.click();
         }
 
         function updateFlow() {
@@ -327,9 +347,7 @@
             const p2Timer = document.getElementById('p2-timer-container');
             const narrator = document.getElementById('narrator-text');
 
-            p2PrepBtn.classList.add('hidden');
-            p2Timer.classList.add('hidden');
-            nextBtn.classList.remove('hidden');
+            p2PrepBtn.classList.add('hidden'); p2Timer.classList.add('hidden'); nextBtn.classList.remove('hidden');
 
             if (state.currentPart === 1) {
                 indicator.innerText = "Part 1";
@@ -343,29 +361,24 @@
                     nextBtn.innerText = (state.p1Index === state.activeExam.p1.length - 1) ? "Finish Part 1" : "Next Question";
                     startPartRecording();
                 }
-            } 
-            else if (state.currentPart === 2) {
+            } else if (state.currentPart === 2) {
                 indicator.innerText = "Part 2";
                 if (state.p2Phase === 'intro') {
                     narrator.innerText = "Instruction";
                     display.innerText = "I'm going to give you a topic. You will have 1 minute to prepare.";
-                    nextBtn.classList.add('hidden');
-                    p2PrepBtn.classList.remove('hidden');
+                    nextBtn.classList.add('hidden'); p2PrepBtn.classList.remove('hidden');
                 } else if (state.p2Phase === 'prep') {
                     narrator.innerText = "Preparation (1 minute)";
                     display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl text-lg italic border border-indigo-100 shadow-inner">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
-                    nextBtn.classList.add('hidden');
-                    p2Timer.classList.remove('hidden');
+                    nextBtn.classList.add('hidden'); p2Timer.classList.remove('hidden');
                 } else if (state.p2Phase === 'speak') {
                     narrator.innerText = "Speaking (2 minutes)";
                     display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl text-lg italic border border-indigo-100 shadow-inner">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
-                    nextBtn.innerText = "Finish Part 2";
-                    p2Timer.classList.remove('hidden');
+                    nextBtn.innerText = "Finish Part 2"; p2Timer.classList.remove('hidden');
                     document.getElementById('p2-timer-label').innerText = "Speaking Time";
                     startPartRecording();
                 }
-            }
-            else if (state.currentPart === 3) {
+            } else if (state.currentPart === 3) {
                 indicator.innerText = "Part 3";
                 if (state.p3Index === -1) {
                     narrator.innerText = "Discussion";
@@ -385,63 +398,49 @@
         async function nextStep() {
             if (state.p2SpeakingInterval) { clearInterval(state.p2SpeakingInterval); state.p2SpeakingInterval = null; }
             if (state.currentPart === 1) {
-                if (state.p1Index === -1) { state.p1Index = 0; } 
+                if (state.p1Index === -1) state.p1Index = 0;
                 else if (state.p1Index === state.activeExam.p1.length - 1) {
-                    const blob = await stopPartRecording();
-                    await gradePart(1, blob);
-                    state.currentPart = 2;
-                } else { state.p1Index++; }
-            } 
-            else if (state.currentPart === 2) {
-                const blob = await stopPartRecording();
-                await gradePart(2, blob);
-                state.currentPart = 3;
-            } 
-            else if (state.currentPart === 3) {
-                if (state.p3Index === -1) { state.p3Index = 0; } 
+                    const blob = await stopPartRecording(); await gradePart(1, blob); state.currentPart = 2;
+                } else state.p1Index++;
+            } else if (state.currentPart === 2) {
+                const blob = await stopPartRecording(); await gradePart(2, blob); state.currentPart = 3;
+            } else if (state.currentPart === 3) {
+                if (state.p3Index === -1) state.p3Index = 0;
                 else if (state.p3Index === state.activeExam.p3.length - 1) {
-                    const blob = await stopPartRecording();
-                    await gradePart(3, blob);
-                    showFinalReport();
-                    return;
-                } else { state.p3Index++; }
+                    const blob = await stopPartRecording(); await gradePart(3, blob); showFinalReport(); return;
+                } else state.p3Index++;
             }
             updateFlow();
         }
 
         function startP2Prep() {
-            state.p2Phase = 'prep';
-            updateFlow(); 
+            state.p2Phase = 'prep'; updateFlow();
             document.getElementById('p2-timer-container').classList.remove('hidden');
             document.getElementById('p2-prep-btn').classList.add('hidden');
             let time = 60;
             const interval = setInterval(() => {
-                time--;
-                document.getElementById('p2-timer-countdown').innerText = `00:${time.toString().padStart(2, '0')}`;
+                time--; document.getElementById('p2-timer-countdown').innerText = `00:${time.toString().padStart(2, '0')}`;
                 if (time <= 0) {
                     clearInterval(interval);
-                    new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(() => {});
+                    new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(()=>{});
                     window.speechSynthesis.cancel();
                     const promptMsg = new SpeechSynthesisUtterance("Time is up. Please start speaking now.");
                     promptMsg.lang = 'en-GB';
-                    const safetyTimeout = setTimeout(() => { if (state.p2Phase !== 'speak') triggerP2Speaking(); }, 4000);
+                    const triggerP2Speaking = () => {
+                        if (state.p2Phase === 'speak') return;
+                        state.p2Phase = 'speak'; updateFlow();
+                        let speakTime = 120; document.getElementById('p2-timer-countdown').innerText = "02:00";
+                        state.p2SpeakingInterval = setInterval(() => {
+                            speakTime--;
+                            const m = Math.floor(speakTime / 60); const s = speakTime % 60;
+                            document.getElementById('p2-timer-countdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                            if (speakTime <= 0) { clearInterval(state.p2SpeakingInterval); state.p2SpeakingInterval = null; speak("Thank you. Time is up."); }
+                        }, 1000);
+                    };
+                    const safetyTimeout = setTimeout(triggerP2Speaking, 3500);
                     promptMsg.onend = () => { clearTimeout(safetyTimeout); triggerP2Speaking(); };
                     window.speechSynthesis.speak(promptMsg);
                 }
-            }, 1000);
-        }
-
-        function triggerP2Speaking() {
-            state.p2Phase = 'speak';
-            updateFlow(); 
-            let speakTime = 120;
-            document.getElementById('p2-timer-countdown').innerText = "02:00";
-            state.p2SpeakingInterval = setInterval(() => {
-                speakTime--;
-                const m = Math.floor(speakTime / 60);
-                const s = speakTime % 60;
-                document.getElementById('p2-timer-countdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if (speakTime <= 0) { clearInterval(state.p2SpeakingInterval); state.p2SpeakingInterval = null; speak("Thank you. Time is up."); }
             }, 1000);
         }
 
@@ -449,21 +448,19 @@
             const overlay = document.getElementById('grading-overlay');
             overlay.classList.remove('hidden');
             
-            // Validate blob
-            if (!blob || blob.size < 1000) { // Less than 1KB is likely silence/failed
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không phát hiện giọng nói hoặc âm thanh quá ngắn."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng thử lại và đảm bảo micro đang hoạt động." };
+            // Validate blob size
+            if (!blob || blob.size < 5000) { // Less than 5KB is likely failure
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không ghi nhận được âm thanh nói. Vui lòng kiểm tra Micro."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra quyền micro trên trình duyệt." };
                 overlay.classList.add('hidden');
                 return;
             }
 
             const base64 = await new Promise(r => {
-                const reader = new FileReader();
-                reader.onloadend = () => r(reader.result.split(',')[1]);
-                reader.readAsDataURL(blob);
+                const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
 
             const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate Part ${num} based on 4 criteria. 
-            IMPORTANT: If the audio is silent or no clear speech is detected, you MUST assign 0 for all scores.
+            IMPORTANT: If the audio is silent or no clear speech is detected, assign 0.
             Return JSON only: { 
                 "overall": number, 
                 "fc": {"score": number, "feedback": "chi tiết tiếng Việt"}, 
@@ -473,30 +470,30 @@
                 "advice": "lời khuyên tiếng Việt"
             }`;
 
-            const payload = {
-                contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }],
-                systemInstruction: { parts: [{ text: prompt }] },
-                generationConfig: { responseMimeType: "application/json" }
-            };
-
-            // MANDATORY Exponential Backoff Implementation
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             let success = false;
             for (let i = 0; i < 5; i++) {
                 try {
-                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const response = await fetch(url, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }],
+                            systemInstruction: { parts: [{ text: prompt }] },
+                            generationConfig: { responseMimeType: "application/json" }
+                        }) 
+                    });
                     if (response.ok) {
                         const data = await response.json();
                         state.partResults[num] = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
-                        success = true;
-                        break;
+                        success = true; break;
                     }
                 } catch (e) {}
                 await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
             }
 
             if (!success) {
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không thể kết nối với AI sau nhiều lần thử."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra kết nối mạng." };
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không thể kết nối với máy chủ chấm điểm."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Kiểm tra mạng." };
             }
             overlay.classList.add('hidden');
         }
@@ -505,27 +502,22 @@
             document.getElementById('main-test-area').classList.add('hidden');
             document.getElementById('final-audio-preview').classList.add('hidden');
             document.getElementById('feedback-area').classList.remove('hidden');
-            
             const getAvg = (key) => {
                 const scores = [state.partResults[1]?.[key]?.score || 0, state.partResults[2]?.[key]?.score || 0, state.partResults[3]?.[key]?.score || 0];
                 return scores.reduce((a, b) => a + b, 0) / 3;
             };
-
             const avgFC = getAvg('fc'), avgLR = getAvg('lr'), avgGRA = getAvg('gra'), avgP = getAvg('p');
             const roundedOverall = ieltsRounding((avgFC + avgLR + avgGRA + avgP) / 4);
-            
             document.getElementById('final-score').innerText = roundedOverall.toFixed(1);
             document.getElementById('criteria-scores-summary').innerHTML = [
                 { l: "Fluency", v: avgFC }, { l: "Lexical", v: avgLR }, { l: "Grammar", v: avgGRA }, { l: "Pronun", v: avgP }
             ].map(c => `<div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center"><div class="text-[10px] uppercase font-bold text-indigo-400 mb-1">${c.l}</div><div class="text-2xl font-black text-indigo-700">${c.v.toFixed(1)}</div></div>`).join('');
-
             const details = [
                 { name: "Fluency & Coherence", score: avgFC, data: state.partResults[3]?.fc || state.partResults[2]?.fc || state.partResults[1]?.fc || {feedback: "N/A"} },
                 { name: "Lexical Resource", score: avgLR, data: state.partResults[3]?.lr || state.partResults[2]?.lr || state.partResults[1]?.lr || {feedback: "N/A"} },
                 { name: "Grammar Accuracy", score: avgGRA, data: state.partResults[3]?.gra || state.partResults[2]?.gra || state.partResults[1]?.gra || {feedback: "N/A"} },
                 { name: "Pronunciation", score: avgP, data: state.partResults[3]?.p || state.partResults[2]?.p || state.partResults[1]?.p || {feedback: "N/A"} }
             ];
-            
             document.getElementById('detailed-feedback-list').innerHTML = details.map(d => `
                 <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
                     <div class="flex justify-between items-start mb-3">
@@ -535,7 +527,7 @@
                     <p class="text-slate-600 text-sm leading-relaxed">${d.data.feedback}</p>
                 </div>
             `).join('');
-            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || state.partResults[2]?.advice || state.partResults[1]?.advice || "N/A";
+            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || state.partResults[2]?.advice || "N/A";
             try { lucide.createIcons(); } catch(e) {}
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
