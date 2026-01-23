@@ -54,6 +54,32 @@
                 <p class="text-slate-500 text-sm mt-2" id="grading-subtext">Vui lòng chờ trong giây lát để hệ thống chấm điểm Part vừa hoàn thành.</p>
             </div>
 
+            <!-- Part Score Screen (Intermediate) -->
+            <section id="part-result-area" class="hidden bg-white rounded-3xl p-8 shadow-sm border border-indigo-100 animate-fade-in">
+                <div class="text-center mb-6">
+                    <div class="bg-indigo-600 text-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <span id="part-score-val" class="text-3xl font-black">0.0</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Kết quả Part <span id="part-num-val">1</span></h3>
+                </div>
+                
+                <!-- Detailed Criteria for Part -->
+                <div id="part-detailed-scores" class="grid sm:grid-cols-2 gap-4 mb-6">
+                    <!-- Criteria cards will be injected here -->
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Lời khuyên của giám khảo cho Part này:</h4>
+                    <p id="part-feedback-brief" class="text-slate-600 text-sm italic leading-relaxed"></p>
+                </div>
+
+                <div class="text-center">
+                    <button onclick="nextStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all">
+                        Tiếp tục <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>
+                    </button>
+                </div>
+            </section>
+
             <!-- Examiner Box -->
             <section id="main-test-area" class="bg-white rounded-3xl p-8 shadow-sm border border-indigo-100 relative overflow-hidden">
                 <div class="relative z-10 flex flex-col items-center text-center">
@@ -212,7 +238,7 @@
                 },
                 {
                     topic: "Environmental Problems",
-                    part2: "Describe an environmental problem in your hometown.\nYou should say:\n• What problem is it?\n• What causes the problem?\n• What can be done to address the problem?",
+                    part2: "Describe an environmental problem in your hometown.\nYou should say:\n• what problem is it?\n• what causes the problem?\n• what can be done to address the problem?",
                     part3: [
                         "What do you think is the main danger the world faces in terms of the environment?",
                         "In which way do people damage our planet?"
@@ -225,7 +251,7 @@
             activeExam: null, currentPart: 1, p1Index: -1, p3Index: -1, p2Phase: 'intro',
             mediaRecorder: null, audioChunks: [], isRecording: false, timer: 0, timerId: null,
             partResults: { 1: null, 2: null, 3: null }, lastBlob: null, p2SpeakingInterval: null,
-            audioContext: null, analyser: null, visualizerId: null
+            audioContext: null, analyser: null, visualizerId: null, showingIntermediateResult: false
         };
 
         function ieltsRounding(score) {
@@ -245,12 +271,14 @@
                 ...state,
                 activeExam: { p1: shuffledP1, p2: randomSet.part2, p3: shuffledP3, topic: randomSet.topic },
                 currentPart: 1, p1Index: -1, p3Index: -1, p2Phase: 'intro', audioChunks: [],
-                partResults: { 1: null, 2: null, 3: null }, isRecording: false
+                partResults: { 1: null, 2: null, 3: null }, isRecording: false, showingIntermediateResult: false
             };
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('exam-container').classList.remove('hidden');
             document.getElementById('feedback-area').classList.add('hidden');
             document.getElementById('final-audio-preview').classList.add('hidden');
+            document.getElementById('part-result-area').classList.add('hidden');
+            document.getElementById('main-test-area').classList.remove('hidden');
             updateFlow();
         }
 
@@ -258,8 +286,6 @@
             if (state.isRecording) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                
-                // Visualizer Setup
                 state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 state.analyser = state.audioContext.createAnalyser();
                 const source = state.audioContext.createMediaStreamSource(stream);
@@ -267,7 +293,6 @@
                 state.analyser.fftSize = 64;
                 const bufferLength = state.analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
-
                 const bars = document.querySelectorAll('.bar');
                 function draw() {
                     if (!state.isRecording) return;
@@ -280,62 +305,40 @@
                     });
                 }
                 draw();
-
-                // Recorder Setup
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
                 state.mediaRecorder = new MediaRecorder(stream, { mimeType });
                 state.audioChunks = [];
                 state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.audioChunks.push(e.data); };
                 state.mediaRecorder.start();
-                state.isRecording = true;
-                state.timer = 0;
+                state.isRecording = true; state.timer = 0;
                 document.getElementById('recording-section').classList.remove('hidden');
                 document.getElementById('rec-part-num').innerText = state.currentPart;
                 state.timerId = setInterval(() => {
                     state.timer++;
-                    const m = Math.floor(state.timer / 60);
-                    const s = state.timer % 60;
+                    const m = Math.floor(state.timer / 60); const s = state.timer % 60;
                     document.getElementById('timer-display').innerText = `${m}:${s.toString().padStart(2, '0')}`;
                 }, 1000);
-            } catch (err) { 
-                console.error("Mic access error:", err);
-                alert("Hệ thống không thể truy cập Micro. Vui lòng kiểm tra quyền cài đặt trình duyệt và HTTPS."); 
-            }
+            } catch (err) { alert("Microphone access denied."); }
         }
 
         function stopPartRecording() {
             return new Promise((resolve) => {
                 if (!state.mediaRecorder || state.mediaRecorder.state === "inactive") {
-                    state.isRecording = false;
-                    clearInterval(state.timerId);
-                    cancelAnimationFrame(state.visualizerId);
-                    return resolve(null);
+                    state.isRecording = false; clearInterval(state.timerId);
+                    cancelAnimationFrame(state.visualizerId); return resolve(null);
                 }
                 state.mediaRecorder.onstop = () => {
                     const blob = new Blob(state.audioChunks, { type: state.mediaRecorder.mimeType });
-                    state.lastBlob = blob;
-                    state.isRecording = false;
-                    clearInterval(state.timerId);
-                    cancelAnimationFrame(state.visualizerId);
+                    state.lastBlob = blob; state.isRecording = false;
+                    clearInterval(state.timerId); cancelAnimationFrame(state.visualizerId);
                     document.getElementById('recording-section').classList.add('hidden');
                     document.getElementById('audio-playback').src = URL.createObjectURL(blob);
                     document.getElementById('final-audio-preview').classList.remove('hidden');
-                    
                     if (state.audioContext) state.audioContext.close();
-                    
                     resolve(blob);
                 };
                 state.mediaRecorder.stop();
             });
-        }
-
-        function downloadRecording() {
-            if (!state.lastBlob) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(state.lastBlob);
-            const ext = state.lastBlob.type.includes('mp4') ? 'mp4' : 'webm';
-            a.download = `ielts-part-${state.currentPart}-${Date.now()}.${ext}`;
-            a.click();
         }
 
         function updateFlow() {
@@ -396,20 +399,79 @@
 
         async function nextStep() {
             if (state.p2SpeakingInterval) { clearInterval(state.p2SpeakingInterval); state.p2SpeakingInterval = null; }
+            
+            if (state.showingIntermediateResult) {
+                state.showingIntermediateResult = false;
+                document.getElementById('part-result-area').classList.add('hidden');
+                document.getElementById('main-test-area').classList.remove('hidden');
+                
+                if (state.currentPart === 1) {
+                    state.currentPart = 2; updateFlow();
+                } else if (state.currentPart === 2) {
+                    state.currentPart = 3; updateFlow();
+                } else if (state.currentPart === 3) {
+                    showFinalReport();
+                }
+                return;
+            }
+
             if (state.currentPart === 1) {
                 if (state.p1Index === -1) state.p1Index = 0;
                 else if (state.p1Index === state.activeExam.p1.length - 1) {
-                    const blob = await stopPartRecording(); await gradePart(1, blob); state.currentPart = 2;
+                    const blob = await stopPartRecording(); await gradePart(1, blob);
+                    displayIntermediateScore(1); return;
                 } else state.p1Index++;
             } else if (state.currentPart === 2) {
-                const blob = await stopPartRecording(); await gradePart(2, blob); state.currentPart = 3;
+                const blob = await stopPartRecording(); await gradePart(2, blob);
+                displayIntermediateScore(2); return;
             } else if (state.currentPart === 3) {
                 if (state.p3Index === -1) state.p3Index = 0;
                 else if (state.p3Index === state.activeExam.p3.length - 1) {
-                    const blob = await stopPartRecording(); await gradePart(3, blob); showFinalReport(); return;
+                    const blob = await stopPartRecording(); await gradePart(3, blob);
+                    displayIntermediateScore(3); return;
                 } else state.p3Index++;
             }
             updateFlow();
+        }
+
+        function displayIntermediateScore(num) {
+            state.showingIntermediateResult = true;
+            document.getElementById('main-test-area').classList.add('hidden');
+            document.getElementById('final-audio-preview').classList.add('hidden');
+            const resArea = document.getElementById('part-result-area');
+            resArea.classList.remove('hidden');
+            
+            const partData = state.partResults[num];
+            document.getElementById('part-num-val').innerText = num;
+            document.getElementById('part-score-val').innerText = partData.overall.toFixed(1);
+            document.getElementById('part-feedback-brief').innerText = partData.advice;
+
+            // Display detailed criteria
+            const criteriaContainer = document.getElementById('part-detailed-scores');
+            const criteria = [
+                { name: "Fluency & Coherence", data: partData.fc },
+                { name: "Lexical Resource", data: partData.lr },
+                { name: "Grammar Accuracy", data: partData.gra },
+                { name: "Pronunciation", data: partData.p }
+            ];
+
+            criteriaContainer.innerHTML = criteria.map(c => `
+                <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 flex flex-col gap-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-indigo-700 uppercase">${c.name}</span>
+                        <span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Band ${c.data.score.toFixed(1)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-tight line-clamp-3">${c.data.feedback}</p>
+                </div>
+            `).join('');
+            
+            const btn = resArea.querySelector('button');
+            if (num === 3) {
+                btn.innerHTML = `Xem báo cáo tổng hợp <i data-lucide="award" class="w-5 h-5 inline-block ml-1"></i>`;
+            } else {
+                btn.innerHTML = `Tiếp tục sang Part ${num + 1} <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>`;
+            }
+            try { lucide.createIcons(); } catch(e) {}
         }
 
         function startP2Prep() {
@@ -444,48 +506,20 @@
         }
 
         async function gradePart(num, blob) {
-            const overlay = document.getElementById('grading-overlay');
-            overlay.classList.remove('hidden');
-            
-            // Đã giảm ngưỡng kiểm tra xuống 1000 bytes (1KB) để hỗ trợ câu trả lời ngắn
+            const overlay = document.getElementById('grading-overlay'); overlay.classList.remove('hidden');
             if (!blob || blob.size < 1000) { 
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không ghi nhận được âm thanh nói đủ dài. Vui lòng kiểm tra Micro hoặc nói to hơn."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng đảm bảo micro đang hoạt động và bạn đã cho phép trình duyệt truy cập." };
-                overlay.classList.add('hidden');
-                return;
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không phát hiện lời nói."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Không ghi nhận được âm thanh. Band điểm 0." };
+                overlay.classList.add('hidden'); return;
             }
-
             const base64 = await new Promise(r => {
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
-
-            // Cập nhật Prompt để AI nhạy bén hơn với giọng nói và ít khắt khe với tiếng ồn
-            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}.
-            INSTRUCTIONS:
-            - If the audio contains human speech, evaluate it fairly even if there is background noise.
-            - Focus only on the human voice and disregard silence or environmental sounds.
-            - Provide scores for 4 criteria and a final advice in Vietnamese.
-            Return JSON only: { 
-                "overall": number, 
-                "fc": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
-                "lr": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
-                "gra": {"score": number, "feedback": "chi tiết bằng tiếng Việt"}, 
-                "p": {"score": number, "feedback": "chi tiết bằng tiếng Việt"},
-                "advice": "lời khuyên tổng quát bằng tiếng Việt"
-            }`;
-
+            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. Provide scores for 4 criteria and a final advice in Vietnamese. Return JSON only: { "overall": number, "fc": {"score": number, "feedback": "chi tiết"}, "lr": {"score": number, "feedback": "chi tiết"}, "gra": {"score": number, "feedback": "chi tiết"}, "p": {"score": number, "feedback": "chi tiết"}, "advice": "lời khuyên" }`;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             let success = false;
             for (let i = 0; i < 5; i++) {
                 try {
-                    const response = await fetch(url, { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: "Please evaluate this IELTS Speaking response for Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }],
-                            systemInstruction: { parts: [{ text: prompt }] },
-                            generationConfig: { responseMimeType: "application/json" }
-                        }) 
-                    });
+                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }], systemInstruction: { parts: [{ text: prompt }] }, generationConfig: { responseMimeType: "application/json" } }) });
                     if (response.ok) {
                         const data = await response.json();
                         state.partResults[num] = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
@@ -494,15 +528,15 @@
                 } catch (e) {}
                 await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
             }
-
             if (!success) {
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không thể kết nối với máy chủ chấm điểm sau nhiều lần thử."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Vui lòng kiểm tra lại kết nối Internet." };
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:""}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Lỗi kết nối." };
             }
             overlay.classList.add('hidden');
         }
 
         function showFinalReport() {
             document.getElementById('main-test-area').classList.add('hidden');
+            document.getElementById('part-result-area').classList.add('hidden');
             document.getElementById('final-audio-preview').classList.add('hidden');
             document.getElementById('feedback-area').classList.remove('hidden');
             const getAvg = (key) => {
@@ -515,12 +549,11 @@
             document.getElementById('criteria-scores-summary').innerHTML = [
                 { l: "Fluency", v: avgFC }, { l: "Lexical", v: avgLR }, { l: "Grammar", v: avgGRA }, { l: "Pronun", v: avgP }
             ].map(c => `<div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center"><div class="text-[10px] uppercase font-bold text-indigo-400 mb-1">${c.l}</div><div class="text-2xl font-black text-indigo-700">${c.v.toFixed(1)}</div></div>`).join('');
-            
             const details = [
-                { name: "Fluency & Coherence", score: avgFC, data: state.partResults[3]?.fc || state.partResults[2]?.fc || state.partResults[1]?.fc || {feedback: "N/A"} },
-                { name: "Lexical Resource", score: avgLR, data: state.partResults[3]?.lr || state.partResults[2]?.lr || state.partResults[1]?.lr || {feedback: "N/A"} },
-                { name: "Grammar Accuracy", score: avgGRA, data: state.partResults[3]?.gra || state.partResults[2]?.gra || state.partResults[1]?.gra || {feedback: "N/A"} },
-                { name: "Pronunciation", score: avgP, data: state.partResults[3]?.p || state.partResults[2]?.p || state.partResults[1]?.p || {feedback: "N/A"} }
+                { name: "Fluency & Coherence", score: avgFC, data: state.partResults[3]?.fc || state.partResults[2]?.fc || state.partResults[1]?.fc },
+                { name: "Lexical Resource", score: avgLR, data: state.partResults[3]?.lr || state.partResults[2]?.lr || state.partResults[1]?.lr },
+                { name: "Grammar Accuracy", score: avgGRA, data: state.partResults[3]?.gra || state.partResults[2]?.gra || state.partResults[1]?.gra },
+                { name: "Pronunciation", score: avgP, data: state.partResults[3]?.p || state.partResults[2]?.p || state.partResults[1]?.p }
             ];
             document.getElementById('detailed-feedback-list').innerHTML = details.map(d => `
                 <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
@@ -528,20 +561,17 @@
                         <h5 class="font-bold text-slate-800">${d.name}</h5>
                         <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold">Band ${d.score.toFixed(1)}</span>
                     </div>
-                    <p class="text-slate-600 text-sm leading-relaxed">${d.data.feedback}</p>
+                    <p class="text-slate-600 text-sm leading-relaxed">${d.data?.feedback || "N/A"}</p>
                 </div>
             `).join('');
-            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || state.partResults[2]?.advice || "Hệ thống không thu thập đủ dữ liệu để đưa ra lời khuyên cụ thể.";
+            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || "Hoàn thành bài luyện tập.";
             try { lucide.createIcons(); } catch(e) {}
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function speak(text) {
-            window.speechSynthesis.cancel();
-            if (!text) return;
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-GB';
-            window.speechSynthesis.speak(msg);
+            window.speechSynthesis.cancel(); if (!text) return;
+            const msg = new SpeechSynthesisUtterance(text); msg.lang = 'en-GB'; window.speechSynthesis.speak(msg);
         }
 
         function repeatQuestion() { speak(document.getElementById('question-display').innerText); }
