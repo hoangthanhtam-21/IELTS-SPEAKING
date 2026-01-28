@@ -14,8 +14,8 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 10px; }
-        /* Waveform Animation */
         .bar { width: 4px; height: 16px; background: #6366f1; border-radius: 2px; transition: height 0.1s ease; }
+        .mode-card:hover { transform: translateY(-5px); border-color: #6366f1; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -24,19 +24,15 @@
         <!-- Header -->
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-indigo-700 flex items-center gap-2">
+                <h1 class="text-3xl font-bold text-indigo-700 flex items-center gap-2 cursor-pointer" onclick="location.reload()">
                     <i data-lucide="award" class="w-8 h-8"></i>
                     IELTS Speaking AI
                 </h1>
-                <p class="text-slate-500">Full Question Bank & 4-Criteria Assessment</p>
+                <p class="text-slate-500">Professional Practice Environment</p>
             </div>
             <div class="flex items-center gap-2">
                 <button id="settings-btn" onclick="toggleSettings()" class="p-3 bg-white rounded-xl shadow-sm border border-slate-200 hover:bg-slate-50 transition-all text-slate-500" title="Cài đặt API Key">
                     <i data-lucide="settings" class="w-5 h-5"></i>
-                </button>
-                <button onclick="generateExam()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg active:scale-95">
-                    <i data-lucide="play" class="w-5 h-5"></i>
-                    Start Full Mock Test
                 </button>
             </div>
         </header>
@@ -48,7 +44,7 @@
                     <i data-lucide="key" class="text-indigo-600"></i>
                     Cấu hình API Key
                 </h3>
-                <p class="text-sm text-slate-500 mb-6">Bạn có thể sử dụng Key mặc định của giáo viên hoặc tự nhập Key cá nhân của mình vào đây.</p>
+                <p class="text-sm text-slate-500 mb-6">Bạn có thể sử dụng Key mặc định hoặc tự nhập Key cá nhân. Dữ liệu được lưu trong trình duyệt.</p>
                 <input type="password" id="api-key-input" placeholder="Nhập Gemini API Key tại đây..." class="w-full p-4 bg-slate-100 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:outline-none mb-6 transition-all">
                 <div class="flex gap-3">
                     <button onclick="toggleSettings()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Đóng</button>
@@ -57,13 +53,86 @@
             </div>
         </div>
 
-        <!-- Welcome Screen -->
-        <div id="welcome-screen" class="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-100">
-            <div class="bg-indigo-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-500">
-                <i data-lucide="mic-2" class="w-10 h-10"></i>
+        <!-- Mode Selection Screen -->
+        <div id="welcome-screen" class="space-y-8 animate-fade-in">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-slate-800">Chọn chế độ luyện tập</h2>
+                <p class="text-slate-500">Hệ thống AI sẽ đồng hành cùng bạn xuyên suốt buổi thi</p>
             </div>
-            <h2 class="text-2xl font-bold mb-2">Ready for your simulation?</h2>
-            <p class="text-slate-500 mb-8 max-w-md mx-auto">Hệ thống sẽ dẫn dắt bạn qua 3 phần thi. Kết quả sẽ được chấm điểm chi tiết dựa trên tiêu chuẩn IELTS quốc tế.</p>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Full Mock -->
+                <div onclick="generateExam('full')" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-4">
+                        <i data-lucide="clipboard-check"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Full Mock Test</h3>
+                    <p class="text-sm text-slate-500">Giả lập bài thi thật 3 phần (Part 1-2-3). Part 3 theo sát chủ đề Part 2.</p>
+                    <div class="mt-4 flex gap-2">
+                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded">P1: 4Q</span>
+                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded">P2: 1Q</span>
+                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded">P3: 3Q</span>
+                    </div>
+                </div>
+
+                <!-- Topic Based -->
+                <div onclick="showTopicSelection()" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
+                    <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-4">
+                        <i data-lucide="book-open"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Topic-based</h3>
+                    <p class="text-sm text-slate-500">Luyện tập sâu theo từng chủ đề cụ thể. AI gợi ý từ vựng và cấu trúc nâng cao.</p>
+                </div>
+
+                <!-- Part Only -->
+                <div onclick="showPartSelection()" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
+                    <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 mb-4">
+                        <i data-lucide="target"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Part Practice</h3>
+                    <p class="text-sm text-slate-500">Tập trung luyện tập riêng lẻ từng phần để khắc phục điểm yếu nhanh nhất.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topic Selection Modal (Inner Screen) -->
+        <div id="topic-selection-screen" class="hidden space-y-6 animate-fade-in">
+            <button onclick="backToMain()" class="flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors font-medium">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i> Quay lại
+            </button>
+            <h2 class="text-2xl font-bold">Chọn chủ đề luyện tập</h2>
+            <div class="grid sm:grid-cols-2 gap-4" id="topic-list-container"></div>
+        </div>
+
+        <!-- Part Selection Modal (Inner Screen) -->
+        <div id="part-selection-screen" class="hidden space-y-6 animate-fade-in">
+            <button onclick="backToMain()" class="flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors font-medium">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i> Quay lại
+            </button>
+            <h2 class="text-2xl font-bold">Chọn phần thi muốn luyện tập</h2>
+            <div class="grid gap-4">
+                <button onclick="generateExam('part', 1)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all flex justify-between items-center group">
+                    <div>
+                        <h4 class="font-bold text-lg">Part 1: Introduction & Interview</h4>
+                        <p class="text-sm text-slate-500">Luyện tập 5 câu hỏi cá nhân ngẫu nhiên.</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="group-hover:translate-x-1 transition-transform"></i>
+                </button>
+                <button onclick="generateExam('part', 2)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all flex justify-between items-center group">
+                    <div>
+                        <h4 class="font-bold text-lg">Part 2: Individual Long Turn</h4>
+                        <p class="text-sm text-slate-500">Luyện tập 1 chủ đề nói kèm thời gian chuẩn bị.</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="group-hover:translate-x-1 transition-transform"></i>
+                </button>
+                <button onclick="generateExam('part', 3)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all flex justify-between items-center group">
+                    <div>
+                        <h4 class="font-bold text-lg">Part 3: Two-way Discussion</h4>
+                        <p class="text-sm text-slate-500">Luyện tập 4 câu hỏi thảo luận chuyên sâu.</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Exam UI -->
@@ -72,10 +141,10 @@
             <div id="grading-overlay" class="hidden flex flex-col items-center justify-center p-12 bg-white/90 backdrop-blur rounded-3xl border-2 border-indigo-200 animate-fade-in z-50">
                 <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
                 <h3 class="text-xl font-bold text-slate-800" id="grading-status-text">AI is analyzing...</h3>
-                <p class="text-slate-500 text-sm mt-2" id="grading-subtext">Vui lòng chờ trong giây lát để hệ thống chấm điểm Part vừa hoàn thành.</p>
+                <p class="text-slate-500 text-sm mt-2" id="grading-subtext">Vui lòng chờ trong giây lát.</p>
             </div>
 
-            <!-- Part Score Screen (Intermediate) -->
+            <!-- Intermediate Part Score Screen -->
             <section id="part-result-area" class="hidden bg-white rounded-3xl p-8 shadow-sm border border-indigo-100 animate-fade-in">
                 <div class="text-center mb-6">
                     <div class="bg-indigo-600 text-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -83,19 +152,13 @@
                     </div>
                     <h3 class="text-xl font-bold text-slate-800">Kết quả Part <span id="part-num-val">1</span></h3>
                 </div>
-                
-                <!-- Detailed Criteria for Part -->
-                <div id="part-detailed-scores" class="grid sm:grid-cols-2 gap-4 mb-6">
-                    <!-- Criteria cards will be injected here -->
-                </div>
-
+                <div id="part-detailed-scores" class="grid sm:grid-cols-2 gap-4 mb-6"></div>
                 <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Lời khuyên của giám khảo cho Part này:</h4>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Nhận xét của giám khảo:</h4>
                     <div id="part-feedback-brief" class="text-slate-600 text-sm italic leading-relaxed"></div>
                 </div>
-
                 <div class="text-center">
-                    <button onclick="nextStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all">
+                    <button id="intermediate-next-btn" onclick="nextStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all">
                         Tiếp tục <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>
                     </button>
                 </div>
@@ -106,12 +169,9 @@
                 <div class="relative z-10 flex flex-col items-center text-center">
                     <div id="part-indicator" class="mb-2 px-4 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-widest">Part 1</div>
                     <div id="narrator-text" class="text-slate-500 italic mb-4">The examiner is preparing...</div>
-                    
-                    <div id="question-display" class="text-2xl md:text-3xl font-bold text-slate-800 mb-8 min-h-[120px] flex items-center justify-center animate-fade-in text-center px-4">
-                        Question will appear here
-                    </div>
+                    <div id="question-display" class="text-2xl md:text-3xl font-bold text-slate-800 mb-8 min-h-[120px] flex items-center justify-center animate-fade-in text-center px-4"></div>
 
-                    <!-- Part 2 Countdown -->
+                    <!-- P2 Countdown -->
                     <div id="p2-timer-container" class="hidden mb-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 w-full max-w-xs">
                         <div id="p2-timer-label" class="text-xs font-bold text-amber-700 uppercase mb-1">Preparation Time</div>
                         <div id="p2-timer-countdown" class="text-4xl font-mono font-black text-amber-600">01:00</div>
@@ -131,26 +191,21 @@
                 </div>
             </section>
 
-            <!-- Rec Area -->
+            <!-- Recording HUD -->
             <section id="recording-section" class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl flex items-center justify-between hidden">
                 <div class="flex items-center gap-6">
                     <div id="rec-dot" class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <div class="flex flex-col">
+                    <div>
                         <div class="text-xs uppercase font-bold text-slate-400 tracking-tighter">Recording Part <span id="rec-part-num">1</span></div>
                         <div id="timer-display" class="text-2xl font-mono font-bold">0:00</div>
                     </div>
                 </div>
-                <!-- Visual Feedback for Mic -->
                 <div class="flex items-center gap-1 h-8" id="visualizer-bars">
                     <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
                 </div>
-                <div class="text-right hidden sm:block">
-                    <p class="text-[10px] text-slate-500 uppercase font-bold">Auto-capturing Audio</p>
-                    <p class="text-xs italic text-indigo-300">Speaking now...</p>
-                </div>
             </section>
 
-            <!-- Audio Review -->
+            <!-- Audio Playback -->
             <section id="final-audio-preview" class="hidden bg-slate-100 p-6 rounded-3xl border border-slate-200 flex flex-col items-center gap-4 animate-fade-in">
                 <h4 class="font-bold text-slate-700">Review Last Recording</h4>
                 <audio id="audio-playback" controls class="w-full"></audio>
@@ -159,25 +214,41 @@
                 </button>
             </section>
 
-            <!-- Final Report Area -->
+            <!-- Final Feedback Screen -->
             <section id="feedback-area" class="hidden bg-white rounded-3xl p-8 shadow-2xl border-2 border-indigo-100 animate-fade-in">
                 <div class="text-center mb-8 border-b pb-6">
                     <h2 class="text-3xl font-black text-slate-800 mb-2 uppercase">IELTS Speaking Full Report</h2>
-                    <p class="text-slate-500">Based on Official Band Descriptors</p>
+                    <p class="text-slate-500" id="final-report-subtitle">Based on Official Band Descriptors</p>
                 </div>
 
-                <!-- Scores Header -->
+                <!-- Overall Scores -->
                 <div class="grid md:grid-cols-4 gap-6 mb-10">
                     <div class="bg-indigo-600 text-white p-8 rounded-3xl flex flex-col items-center justify-center shadow-xl">
                         <span class="text-xs uppercase font-bold opacity-80 mb-1">Overall Band</span>
                         <span id="final-score" class="text-7xl font-black">0.0</span>
                     </div>
-                    <div class="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4" id="criteria-scores-summary">
-                        <!-- Score criteria summarized -->
+                    <div class="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4" id="criteria-scores-summary"></div>
+                </div>
+
+                <!-- Suggestions for Mode Topic (Vocabulary/Structure) -->
+                <div id="topic-suggestions-container" class="hidden mb-10 space-y-4">
+                    <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl">
+                        <h4 class="flex items-center gap-2 font-bold text-emerald-800 mb-4">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i> Gợi ý từ vựng & Cấu trúc (Topic-based Mode)
+                        </h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <h5 class="text-xs font-bold text-emerald-600 uppercase mb-2">Vocabulary Recommendations</h5>
+                                <ul id="suggested-vocab" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-bold text-emerald-600 uppercase mb-2">Structures to try</h5>
+                                <ul id="suggested-structures" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Detailed Analysis -->
                 <div class="space-y-6" id="detailed-feedback-list"></div>
 
                 <div class="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-200">
@@ -185,42 +256,61 @@
                     <p id="final-advice" class="text-slate-600 text-sm leading-relaxed italic"></p>
                 </div>
 
-                <button onclick="location.reload()" class="mt-8 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all">
-                    Restart Practice
+                <button onclick="location.reload()" class="mt-8 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg">
+                    Back to Dashboard
                 </button>
             </section>
         </div>
     </div>
 
     <script>
-        /**
-         * HƯỚNG DẪN CHO GIÁO VIÊN:
-         * 1. Lấy API Key từ aistudio.google.com
-         * 2. Dán Key vào giữa dấu ngoặc kép ở biến HARDCODED_API_KEY bên dưới.
-         * 3. Lưu file và đẩy lên GitHub.
-         * 4. Học sinh sẽ không cần nhập Key nữa.
-         */
-        const HARDCODED_API_KEY = ""; // <--- DÁN KEY CỦA BẠN VÀO ĐÂY
-
+        const HARDCODED_API_KEY = "AIzaSyBKkM1o6J4cU04VxR1fBj2fMIJyzGLYqS4"; 
         let apiKey = HARDCODED_API_KEY || localStorage.getItem('ielts_gemini_api_key') || ""; 
 
         const QUESTION_BANK = {
             part1: [
-                { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop? Why?" },
-                { text: "Is it difficult for you to make choices when you shop?" }, { text: "Do you think expensive products are always better than cheaper ones?" },
-                { text: "Do you think hobbies are important?" }, { text: "Which hobby do you like to try in the future?" },
-                { text: "What do you like to do on the weekends?" }, { text: "Do you like to spend your free time with families or friends?" },
-                { text: "What will you do if you go out?" }, { text: "What kind of TV programs do you like?" },
-                { text: "Do you prefer to read local news or international news?" }, { text: "Who is your favorite celebrity in your country?" },
-                { text: "What types of people become famous in your country?" }, { text: "Would you like to be a famous person?" },
-                { text: "Do you like any foreign celebrities?" }, { text: "How do celebrities influence their fans in your country?" },
-                { text: "Is there much pollution where you live?" }, { text: "Are residents in your town good at recycling waste?" },
-                { text: "Do you take an interest in nature?" }, { text: "Have you ever participated in any environmental events?" },
-                { text: "What kinds of animals are popular pets in your country? Why?" }, { text: "Do you think pollution is a big problem nowadays?" }
+                // Consumerism
+                { text: "Do you like shopping?" },
+                { text: "Do you compare prices when you shop? Why?" },
+                { text: "Is it difficult for you to make choices when you shop?" },
+                { text: "Do you think expensive products are always better than cheaper ones?" },
+                // Leisure Time
+                { text: "Do you think hobbies are important?" },
+                { text: "Which hobby do you like to try in the future?" },
+                { text: "What do you like to do on the weekends?" },
+                { text: "Do you like to spend your free time with families or friends?" },
+                { text: "What will you do if you go out?" },
+                // Fame & Media
+                { text: "What kind of TV programs do you like?" },
+                { text: "Do you prefer to read local news or international news?" },
+                { text: "Who is your favorite celebrity in your country?" },
+                { text: "What types of people become famous in your country?" },
+                { text: "Would you like to be a famous person?" },
+                { text: "Do you like any foreign celebrities?" },
+                { text: "How do celebrities influence their fans in your country?" },
+                // Natural World
+                { text: "Is there much pollution where you live?" },
+                { text: "Are residents in your town good at recycling waste?" },
+                { text: "Do you take an interest in nature?" },
+                { text: "Have you ever participated in any environmental events?" },
+                { text: "What kinds of animals are popular pets in your country? Why?" },
+                { text: "Do you think pollution is a big problem nowadays?" },
+                // Home
+                { text: "Do you live in a house or an apartment?" },
+                { text: "Which is your favourite room in your home? Why?" },
+                { text: "Would you change anything about your home? Why / why not?" },
+                { text: "What do you think makes a house feel like a home?" },
+                { text: "Would you like to move to a different home in the future?" }
             ],
             topicSets: [
                 {
-                    topic: "Possessions & Shopping",
+                    topic: "Consumerism - Possessions",
+                    part1: [
+                        { text: "Do you like shopping?" },
+                        { text: "Do you compare prices when you shop? Why?" },
+                        { text: "Is it difficult for you to make choices when you shop?" },
+                        { text: "Do you think expensive products are always better than cheaper ones?" }
+                    ],
                     part2: "Describe something you own that you want to replace\nYou should say:\n• What it is\n• Where it is\n• How you got it\n• And explain why you want to replace it",
                     part3: [
                         "What risks would you take when shopping online? Why?",
@@ -232,7 +322,13 @@
                     ]
                 },
                 {
-                    topic: "Shopping Centers",
+                    topic: "Consumerism - Shopping Center",
+                    part1: [
+                        { text: "Do you like shopping?" },
+                        { text: "Do you compare prices when you shop? Why?" },
+                        { text: "Is it difficult for you to make choices when you shop?" },
+                        { text: "Do you think expensive products are always better than cheaper ones?" }
+                    ],
                     part2: "Describe a shopping center you often go to.\nYou should say:\n• Where is it?\n• How often do you go there?\n• How is its appearance?\n• Why do you often go there?",
                     part3: [
                         "What risks would you take when shopping online? Why?",
@@ -245,6 +341,13 @@
                 },
                 {
                     topic: "Leisure Time",
+                    part1: [
+                        { text: "Do you think hobbies are important?" },
+                        { text: "Which hobby do you like to try in the future?" },
+                        { text: "What do you like to do on the weekends?" },
+                        { text: "Do you like to spend your free time with families or friends?" },
+                        { text: "What will you do if you go out?" }
+                    ],
                     part2: "Describe your leisure time. You should say:\n• How you usually spend your leisure time\n• Who you prefer to spend your leisure time with\n• What leisure activities are popular in your country\n• And explain why leisure time is important to you",
                     part3: [
                         "How has the way we spend free time changed over the years?",
@@ -255,7 +358,14 @@
                     ]
                 },
                 {
-                    topic: "Famous People & News",
+                    topic: "Fame and Media",
+                    part1: [
+                        { text: "What kind of TV programs do you like?" },
+                        { text: "Do you prefer to read local news or international news?" },
+                        { text: "Who is your favorite celebrity in your country?" },
+                        { text: "What types of people become famous in your country?" },
+                        { text: "Would you like to be a famous person?" }
+                    ],
                     part2: "Describe a famous person who is not from your country you would like to meet.\nYou should say:\n• Who that person is\n• Why you admire him/her\n• What would you say if you met him/her",
                     part3: [
                         "Do you think the internet influences the types of news stories people hear about?",
@@ -267,21 +377,49 @@
                     ]
                 },
                 {
-                    topic: "Environmental Problems",
-                    part2: "Describe an environmental problem in your hometown.\nYou should say:\n• what problem is it?\n• what causes the problem?\n• what can be done to address the problem?",
+                    topic: "Natural World",
+                    part1: [
+                        { text: "Is there much pollution where you live?" },
+                        { text: "Are residents in your town good at recycling waste?" },
+                        { text: "Do you take an interest in nature?" },
+                        { text: "Have you ever participated in any environmental events?" },
+                        { text: "What kinds of animals are popular pets in your country? Why?" }
+                    ],
+                    part2: "Describe an environmental problem in your hometown.\nYou should say:\n• What problem is it?\n• What causes the problem?\n• What can be done to address the problem?",
                     part3: [
                         "What do you think is the main danger the world faces in terms of the environment?",
                         "In which way do people damage our planet?"
+                    ]
+                },
+                {
+                    topic: "Home",
+                    part1: [
+                        { text: "Do you live in a house or an apartment?" },
+                        { text: "Which is your favourite room in your home? Why?" },
+                        { text: "Would you change anything about your home? Why / why not?" },
+                        { text: "What do you think makes a house feel like a home?" },
+                        { text: "Would you like to move to a different home in the future?" }
+                    ],
+                    part2: "Describe a house or apartment you would like to live in in the future.\nYou should say:\n• Where it is\n• What kind of accommodation it is\n• What it is like\n• And how you feel about this dream house/apartment.",
+                    part3: [
+                        "Do you think homes will look different in the future?",
+                        "How easy is it to find a place to live in your country?",
+                        "Do you think it’s better to rent or to buy a place to live in?",
+                        "Do you agree that there is a right age for young adults to stop living with their parents?",
+                        "What factors will contribute to whether a place is good to live in or not?"
                     ]
                 }
             ]
         };
 
         let state = {
+            mode: '', // 'full', 'topic', 'part'
+            practicePart: 0,
             activeExam: null, currentPart: 1, p1Index: -1, p3Index: -1, p2Phase: 'intro',
             mediaRecorder: null, audioChunks: [], isRecording: false, timer: 0, timerId: null,
             partResults: { 1: null, 2: null, 3: null }, lastBlob: null, p2SpeakingInterval: null,
-            audioContext: null, analyser: null, visualizerId: null, showingIntermediateResult: false
+            audioContext: null, analyser: null, visualizerId: null, showingIntermediateResult: false,
+            suggestions: { vocab: [], structures: [] }
         };
 
         function ieltsRounding(score) {
@@ -291,47 +429,73 @@
             return Math.ceil(score);
         }
 
-        // Settings functions
         function toggleSettings() {
             const modal = document.getElementById('settings-modal');
             modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                document.getElementById('api-key-input').value = apiKey;
-            }
+            if (!modal.classList.contains('hidden')) document.getElementById('api-key-input').value = apiKey;
         }
 
         function saveApiKey() {
             const val = document.getElementById('api-key-input').value.trim();
-            if (val) {
-                apiKey = val;
-                localStorage.setItem('ielts_gemini_api_key', val);
-                toggleSettings();
-            } else {
-                alert("Vui lòng nhập API Key.");
-            }
+            if (val) { apiKey = val; localStorage.setItem('ielts_gemini_api_key', val); toggleSettings(); }
         }
 
-        function generateExam() {
-            // Check if API key is set
-            if (!apiKey) {
-                toggleSettings();
-                return;
-            }
-            speak(""); 
-            const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5);
-            const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
-            const shuffledP3 = [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3);
-            
-            state = {
-                ...state,
-                activeExam: { p1: shuffledP1, p2: randomSet.part2, p3: shuffledP3, topic: randomSet.topic },
-                currentPart: 1, p1Index: -1, p3Index: -1, p2Phase: 'intro', audioChunks: [],
-                partResults: { 1: null, 2: null, 3: null }, isRecording: false, showingIntermediateResult: false
-            };
+        function showTopicSelection() {
             document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('topic-selection-screen').classList.remove('hidden');
+            const container = document.getElementById('topic-list-container');
+            container.innerHTML = QUESTION_BANK.topicSets.map((set, idx) => `
+                <button onclick="generateExam('topic', ${idx})" class="p-4 bg-white border border-slate-200 rounded-2xl hover:border-indigo-500 text-left transition-all">
+                    <h4 class="font-bold text-slate-800">${set.topic}</h4>
+                    <p class="text-xs text-slate-500 mt-1">Full 3 parts practice about this theme.</p>
+                </button>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function showPartSelection() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('part-selection-screen').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function backToMain() {
+            document.getElementById('topic-selection-screen').classList.add('hidden');
+            document.getElementById('part-selection-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+
+        function generateExam(mode, detail) {
+            if (!apiKey) { toggleSettings(); return; }
+            speak("");
+
+            state = {
+                mode: mode,
+                practicePart: mode === 'part' ? detail : 0,
+                currentPart: mode === 'part' ? detail : 1,
+                p1Index: -1, p3Index: -1, p2Phase: 'intro', audioChunks: [],
+                partResults: { 1: null, 2: null, 3: null }, isRecording: false, showingIntermediateResult: false,
+                suggestions: { vocab: [], structures: [] }
+            };
+
+            if (mode === 'full') {
+                const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 4);
+                const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
+                state.activeExam = { p1: shuffledP1, p2: randomSet.part2, p3: [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3), topic: randomSet.topic };
+            } else if (mode === 'topic') {
+                const set = QUESTION_BANK.topicSets[detail];
+                state.activeExam = { p1: set.part1, p2: set.part2, p3: set.part3, topic: set.topic };
+            } else if (mode === 'part') {
+                if (detail === 1) state.activeExam = { p1: [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5) };
+                if (detail === 2) state.activeExam = { p2: QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)].part2 };
+                if (detail === 3) state.activeExam = { p3: [...QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)].part3].sort(() => 0.5 - Math.random()).slice(0, 4) };
+            }
+
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('topic-selection-screen').classList.add('hidden');
+            document.getElementById('part-selection-screen').classList.add('hidden');
             document.getElementById('exam-container').classList.remove('hidden');
             document.getElementById('feedback-area').classList.add('hidden');
-            document.getElementById('final-audio-preview').classList.add('hidden');
             document.getElementById('part-result-area').classList.add('hidden');
             document.getElementById('main-test-area').classList.remove('hidden');
             updateFlow();
@@ -353,11 +517,7 @@
                     if (!state.isRecording) return;
                     state.visualizerId = requestAnimationFrame(draw);
                     state.analyser.getByteFrequencyData(dataArray);
-                    bars.forEach((bar, i) => {
-                        const val = dataArray[i] || 0;
-                        const height = Math.max(4, val / 4);
-                        bar.style.height = `${height}px`;
-                    });
+                    bars.forEach((bar, i) => { bar.style.height = `${Math.max(4, (dataArray[i] || 0) / 4)}px`; });
                 }
                 draw();
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
@@ -370,25 +530,19 @@
                 document.getElementById('rec-part-num').innerText = state.currentPart;
                 state.timerId = setInterval(() => {
                     state.timer++;
-                    const m = Math.floor(state.timer / 60); const s = state.timer % 60;
-                    document.getElementById('timer-display').innerText = `${m}:${s.toString().padStart(2, '0')}`;
+                    document.getElementById('timer-display').innerText = `${Math.floor(state.timer / 60)}:${(state.timer % 60).toString().padStart(2, '0')}`;
                 }, 1000);
-            } catch (err) { 
-                console.error("Microphone error:", err);
-                alert("Lỗi Micro: " + err.message + ". Hãy đảm bảo bạn đang sử dụng HTTPS và đã cấp quyền Micro."); 
-            }
+            } catch (err) { alert("Microphone access denied."); }
         }
 
         function stopPartRecording() {
             return new Promise((resolve) => {
                 if (!state.mediaRecorder || state.mediaRecorder.state === "inactive") {
-                    state.isRecording = false; clearInterval(state.timerId);
-                    cancelAnimationFrame(state.visualizerId); return resolve(null);
+                    state.isRecording = false; clearInterval(state.timerId); cancelAnimationFrame(state.visualizerId); return resolve(null);
                 }
                 state.mediaRecorder.onstop = () => {
                     const blob = new Blob(state.audioChunks, { type: state.mediaRecorder.mimeType });
-                    state.lastBlob = blob; state.isRecording = false;
-                    clearInterval(state.timerId); cancelAnimationFrame(state.visualizerId);
+                    state.lastBlob = blob; state.isRecording = false; clearInterval(state.timerId); cancelAnimationFrame(state.visualizerId);
                     document.getElementById('recording-section').classList.add('hidden');
                     document.getElementById('audio-playback').src = URL.createObjectURL(blob);
                     document.getElementById('final-audio-preview').classList.remove('hidden');
@@ -414,9 +568,9 @@
                 if (state.p1Index === -1) {
                     narrator.innerText = "Introduction";
                     display.innerText = "Now, in this first part, I'd like to ask you some personal questions. Are you ready?";
-                    nextBtn.innerText = "Start Recording Part 1";
+                    nextBtn.innerText = "Start Part 1";
                 } else {
-                    narrator.innerText = `Question ${state.p1Index + 1} of 5`;
+                    narrator.innerText = `Question ${state.p1Index + 1} of ${state.activeExam.p1.length}`;
                     display.innerText = state.activeExam.p1[state.p1Index].text;
                     nextBtn.innerText = (state.p1Index === state.activeExam.p1.length - 1) ? "Finish Part 1" : "Next Question";
                     startPartRecording();
@@ -427,23 +581,18 @@
                     narrator.innerText = "Instruction";
                     display.innerText = "I'm going to give you a topic. You will have 1 minute to prepare.";
                     nextBtn.classList.add('hidden'); p2PrepBtn.classList.remove('hidden');
-                } else if (state.p2Phase === 'prep') {
-                    narrator.innerText = "Preparation (1 minute)";
-                    display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl text-lg italic border border-indigo-100 shadow-inner">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
-                    nextBtn.classList.add('hidden'); p2Timer.classList.remove('hidden');
-                } else if (state.p2Phase === 'speak') {
-                    narrator.innerText = "Speaking (2 minutes)";
-                    display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl text-lg italic border border-indigo-100 shadow-inner">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
-                    nextBtn.innerText = "Finish Part 2"; p2Timer.classList.remove('hidden');
-                    document.getElementById('p2-timer-label').innerText = "Speaking Time";
-                    startPartRecording();
+                } else {
+                    narrator.innerText = state.p2Phase === 'prep' ? "Preparation (1 min)" : "Speaking (2 mins)";
+                    display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl italic border border-indigo-100">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
+                    if (state.p2Phase === 'prep') { nextBtn.classList.add('hidden'); p2Timer.classList.remove('hidden'); }
+                    else { nextBtn.innerText = "Finish Part 2"; p2Timer.classList.remove('hidden'); startPartRecording(); }
                 }
             } else if (state.currentPart === 3) {
                 indicator.innerText = "Part 3";
                 if (state.p3Index === -1) {
                     narrator.innerText = "Discussion";
-                    display.innerText = "Let's discuss more general questions about " + state.activeExam.topic;
-                    nextBtn.innerText = "Start Recording Part 3";
+                    display.innerText = "Let's discuss more general questions about " + (state.activeExam.topic || "this topic");
+                    nextBtn.innerText = "Start Part 3";
                 } else {
                     narrator.innerText = `Question ${state.p3Index + 1} of ${state.activeExam.p3.length}`;
                     display.innerText = state.activeExam.p3[state.p3Index];
@@ -452,7 +601,7 @@
                 }
             }
             if (!(state.currentPart === 2 && state.p2Phase === 'speak')) speak(display.innerText);
-            try { lucide.createIcons(); } catch(e) {}
+            lucide.createIcons();
         }
 
         async function nextStep() {
@@ -463,30 +612,24 @@
                 document.getElementById('part-result-area').classList.add('hidden');
                 document.getElementById('main-test-area').classList.remove('hidden');
                 
-                if (state.currentPart === 1) {
-                    state.currentPart = 2; updateFlow();
-                } else if (state.currentPart === 2) {
-                    state.currentPart = 3; updateFlow();
-                } else if (state.currentPart === 3) {
-                    showFinalReport();
-                }
+                if (state.mode === 'part') { showFinalReport(); return; }
+                if (state.currentPart === 1) { state.currentPart = 2; updateFlow(); }
+                else if (state.currentPart === 2) { state.currentPart = 3; updateFlow(); }
+                else if (state.currentPart === 3) { showFinalReport(); }
                 return;
             }
 
             if (state.currentPart === 1) {
                 if (state.p1Index === -1) state.p1Index = 0;
                 else if (state.p1Index === state.activeExam.p1.length - 1) {
-                    const blob = await stopPartRecording(); await gradePart(1, blob);
-                    displayIntermediateScore(1); return;
+                    const blob = await stopPartRecording(); await gradePart(1, blob); displayIntermediateScore(1); return;
                 } else state.p1Index++;
             } else if (state.currentPart === 2) {
-                const blob = await stopPartRecording(); await gradePart(2, blob);
-                displayIntermediateScore(2); return;
+                const blob = await stopPartRecording(); await gradePart(2, blob); displayIntermediateScore(2); return;
             } else if (state.currentPart === 3) {
                 if (state.p3Index === -1) state.p3Index = 0;
                 else if (state.p3Index === state.activeExam.p3.length - 1) {
-                    const blob = await stopPartRecording(); await gradePart(3, blob);
-                    displayIntermediateScore(3); return;
+                    const blob = await stopPartRecording(); await gradePart(3, blob); displayIntermediateScore(3); return;
                 } else state.p3Index++;
             }
             updateFlow();
@@ -504,17 +647,12 @@
             document.getElementById('part-score-val').innerText = partData.overall.toFixed(1);
             document.getElementById('part-feedback-brief').innerText = partData.advice;
 
-            // Display detailed criteria
-            const criteriaContainer = document.getElementById('part-detailed-scores');
             const criteria = [
-                { name: "Fluency & Coherence", data: partData.fc },
-                { name: "Lexical Resource", data: partData.lr },
-                { name: "Grammar Accuracy", data: partData.gra },
-                { name: "Pronunciation", data: partData.p }
+                { name: "Fluency", data: partData.fc }, { name: "Lexical", data: partData.lr },
+                { name: "Grammar", data: partData.gra }, { name: "Pronunciation", data: partData.p }
             ];
-
-            criteriaContainer.innerHTML = criteria.map(c => `
-                <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 flex flex-col gap-1">
+            document.getElementById('part-detailed-scores').innerHTML = criteria.map(c => `
+                <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-xs font-bold text-indigo-700 uppercase">${c.name}</span>
                         <span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Band ${c.data.score.toFixed(1)}</span>
@@ -523,13 +661,10 @@
                 </div>
             `).join('');
             
-            const btn = resArea.querySelector('button');
-            if (num === 3) {
-                btn.innerHTML = `Xem báo cáo tổng hợp <i data-lucide="award" class="w-5 h-5 inline-block ml-1"></i>`;
-            } else {
-                btn.innerHTML = `Tiếp tục sang Part ${num + 1} <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>`;
-            }
-            try { lucide.createIcons(); } catch(e) {}
+            const btn = document.getElementById('intermediate-next-btn');
+            if (state.mode === 'part' || (num === 3 && state.mode !== 'part')) btn.innerHTML = `Xem báo cáo tổng kết <i data-lucide="award" class="w-5 h-5 inline-block ml-1"></i>`;
+            else btn.innerHTML = `Tiếp tục sang Part ${num + 1} <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>`;
+            lucide.createIcons();
         }
 
         function startP2Prep() {
@@ -548,12 +683,11 @@
                     const triggerP2Speaking = () => {
                         if (state.p2Phase === 'speak') return;
                         state.p2Phase = 'speak'; updateFlow();
-                        let speakTime = 120; document.getElementById('p2-timer-countdown').innerText = "02:00";
+                        let speakTime = 120;
                         state.p2SpeakingInterval = setInterval(() => {
                             speakTime--;
-                            const m = Math.floor(speakTime / 60); const s = speakTime % 60;
-                            document.getElementById('p2-timer-countdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                            if (speakTime <= 0) { clearInterval(state.p2SpeakingInterval); state.p2SpeakingInterval = null; speak("Thank you. Time is up."); }
+                            document.getElementById('p2-timer-countdown').innerText = `${Math.floor(speakTime/60).toString().padStart(2, '0')}:${(speakTime % 60).toString().padStart(2, '0')}`;
+                            if (speakTime <= 0) { clearInterval(state.p2SpeakingInterval); speak("Time is up."); }
                         }, 1000);
                     };
                     const safetyTimeout = setTimeout(triggerP2Speaking, 3500);
@@ -566,53 +700,34 @@
         async function gradePart(num, blob) {
             const overlay = document.getElementById('grading-overlay'); overlay.classList.remove('hidden');
             if (!blob || blob.size < 1000) { 
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không phát hiện lời nói."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Không ghi nhận được âm thanh. Band điểm 0." };
+                state.partResults[num] = { overall: 0, fc: {score:0, feedback:"Không phát hiện âm thanh."}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Ghi âm lỗi." };
                 overlay.classList.add('hidden'); return;
             }
             const base64 = await new Promise(r => {
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
-            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. 
-            For each of the 4 criteria, provide a comprehensive and detailed evaluation in Vietnamese (at least 2-3 sentences per criteria) highlighting specific strengths, weaknesses, and examples if possible.
-            Return JSON only in this exact format: 
-            { 
-              "overall": number, 
-              "fc": {"score": number, "feedback": "nhận xét chi tiết"}, 
-              "lr": {"score": number, "feedback": "nhận xét chi tiết"}, 
-              "gra": {"score": number, "feedback": "nhận xét chi tiết"}, 
-              "p": {"score": number, "feedback": "nhận xét chi tiết"}, 
-              "advice": "lời khuyên cụ thể để cải thiện" 
-            }`;
+
+            let systemPrompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. Provide scores for 4 criteria and advice in Vietnamese. Return JSON only: { "overall": number, "fc": {"score": number, "feedback": "chi tiết"}, "lr": {"score": number, "feedback": "chi tiết"}, "gra": {"score": number, "feedback": "chi tiết"}, "p": {"score": number, "feedback": "chi tiết"}, "advice": "lời khuyên" }`;
             
+            if (state.mode === 'topic' && num === 3) {
+                systemPrompt += ` Also include a "suggestions" object with "vocab" (list of 5 advanced words) and "structures" (list of 3 complex grammar structures) related to the topic: ${state.activeExam.topic}`;
+            }
+
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            let success = false;
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const response = await fetch(url, { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ 
-                            contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }], 
-                            systemInstruction: { parts: [{ text: prompt }] }, 
-                            generationConfig: { responseMimeType: "application/json" } 
-                        }) 
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        state.partResults[num] = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
-                        success = true; break;
-                    } else if (response.status === 403) {
-                        throw new Error("API Key không hợp lệ hoặc không có quyền truy cập.");
-                    }
-                } catch (e) {
-                    console.error("Fetch attempt " + (i+1) + " failed:", e);
-                    if (i === 4) alert("Lỗi kết nối AI: " + e.message);
-                }
-                await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-            }
-            if (!success) {
-                state.partResults[num] = { overall: 0, fc: {score:0, feedback:""}, lr: {score:0, feedback:""}, gra: {score:0, feedback:""}, p: {score:0, feedback:""}, advice: "Lỗi kết nối API. Hãy kiểm tra lại API Key." };
-            }
+            try {
+                const response = await fetch(url, { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }], 
+                        systemInstruction: { parts: [{ text: systemPrompt }] }, 
+                        generationConfig: { responseMimeType: "application/json" } 
+                    }) 
+                });
+                const data = await response.json();
+                const result = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
+                state.partResults[num] = result;
+                if (result.suggestions) state.suggestions = result.suggestions;
+            } catch (e) { console.error(e); }
             overlay.classList.add('hidden');
         }
 
@@ -621,47 +736,45 @@
             document.getElementById('part-result-area').classList.add('hidden');
             document.getElementById('final-audio-preview').classList.add('hidden');
             document.getElementById('feedback-area').classList.remove('hidden');
+
             const getAvg = (key) => {
-                const scores = [state.partResults[1]?.[key]?.score || 0, state.partResults[2]?.[key]?.score || 0, state.partResults[3]?.[key]?.score || 0];
-                return scores.reduce((a, b) => a + b, 0) / 3;
+                const activeScores = Object.values(state.partResults).filter(p => p !== null).map(p => p[key].score);
+                if (activeScores.length === 0) return 0;
+                return activeScores.reduce((a, b) => a + b, 0) / activeScores.length;
             };
+
             const avgFC = getAvg('fc'), avgLR = getAvg('lr'), avgGRA = getAvg('gra'), avgP = getAvg('p');
             const roundedOverall = ieltsRounding((avgFC + avgLR + avgGRA + avgP) / 4);
+            
             document.getElementById('final-score').innerText = roundedOverall.toFixed(1);
             document.getElementById('criteria-scores-summary').innerHTML = [
                 { l: "Fluency", v: avgFC }, { l: "Lexical", v: avgLR }, { l: "Grammar", v: avgGRA }, { l: "Pronun", v: avgP }
             ].map(c => `<div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center"><div class="text-[10px] uppercase font-bold text-indigo-400 mb-1">${c.l}</div><div class="text-2xl font-black text-indigo-700">${c.v.toFixed(1)}</div></div>`).join('');
-            const details = [
-                { name: "Fluency & Coherence", score: avgFC, data: state.partResults[3]?.fc || state.partResults[2]?.fc || state.partResults[1]?.fc },
-                { name: "Lexical Resource", score: avgLR, data: state.partResults[3]?.lr || state.partResults[2]?.lr || state.partResults[1]?.lr },
-                { name: "Grammar Accuracy", score: avgGRA, data: state.partResults[3]?.gra || state.partResults[2]?.gra || state.partResults[1]?.gra },
-                { name: "Pronunciation", score: avgP, data: state.partResults[3]?.p || state.partResults[2]?.p || state.partResults[1]?.p }
-            ];
-            document.getElementById('detailed-feedback-list').innerHTML = details.map(d => `
-                <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
-                    <div class="flex justify-between items-start mb-3">
-                        <h5 class="font-bold text-slate-800">${d.name}</h5>
-                        <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-xs font-bold">Band ${d.score.toFixed(1)}</span>
-                    </div>
-                    <p class="text-slate-600 text-sm leading-relaxed">${d.data?.feedback || "N/A"}</p>
+
+            if (state.mode === 'topic' && state.suggestions.vocab && state.suggestions.vocab.length > 0) {
+                document.getElementById('topic-suggestions-container').classList.remove('hidden');
+                document.getElementById('suggested-vocab').innerHTML = state.suggestions.vocab.map(v => `<li>${v}</li>`).join('');
+                document.getElementById('suggested-structures').innerHTML = state.suggestions.structures.map(s => `<li>${s}</li>`).join('');
+            } else {
+                document.getElementById('topic-suggestions-container').classList.add('hidden');
+            }
+
+            const relevantParts = Object.entries(state.partResults).filter(([num, res]) => res !== null);
+            document.getElementById('detailed-feedback-list').innerHTML = relevantParts.map(([num, res]) => `
+                <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm mb-4">
+                    <h5 class="font-bold text-slate-800 mb-2">Part ${num} Details (Overall: ${res.overall})</h5>
+                    <p class="text-slate-600 text-sm leading-relaxed">${res.advice}</p>
                 </div>
             `).join('');
-            document.getElementById('final-advice').innerText = state.partResults[3]?.advice || "Hoàn thành bài luyện tập.";
-            try { lucide.createIcons(); } catch(e) {}
+
+            document.getElementById('final-advice').innerText = relevantParts.length > 0 ? relevantParts[relevantParts.length - 1][1].advice : "Practice completed.";
+            lucide.createIcons();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function speak(text) {
-            window.speechSynthesis.cancel(); if (!text) return;
-            const msg = new SpeechSynthesisUtterance(text); msg.lang = 'en-GB'; window.speechSynthesis.speak(msg);
-        }
-
+        function speak(text) { window.speechSynthesis.cancel(); if (!text) return; const msg = new SpeechSynthesisUtterance(text); msg.lang = 'en-GB'; window.speechSynthesis.speak(msg); }
         function repeatQuestion() { speak(document.getElementById('question-display').innerText); }
-
-        // Initial check for Lucide icons
-        window.onload = () => {
-            try { lucide.createIcons(); } catch(e) {}
-        };
+        window.onload = () => { try { lucide.createIcons(); } catch(e) {} };
     </script>
 </body>
 </html>
