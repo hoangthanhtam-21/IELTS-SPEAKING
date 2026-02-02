@@ -24,8 +24,9 @@
         <!-- Header -->
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-indigo-700 flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-                    <i data-lucide="award" class="w-8 h-8"></i>
+                <h1 class="text-3xl font-bold text-indigo-700 flex items-center gap-3 cursor-pointer" onclick="location.reload()">
+                    <!-- Thay thế Icon bằng Logo.jpg -->
+                    <img src="logo.jpg" alt="Logo" class="w-10 h-10 object-contain rounded-lg shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1904/1904425.png';">
                     IELTS Speaking AI
                 </h1>
                 <p class="text-slate-500">Professional Practice Environment</p>
@@ -61,7 +62,6 @@
             </div>
             
             <div class="grid md:grid-cols-3 gap-6">
-                <!-- Full Mock -->
                 <div onclick="generateExam('full')" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
                     <div class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-4">
                         <i data-lucide="clipboard-check"></i>
@@ -75,7 +75,6 @@
                     </div>
                 </div>
 
-                <!-- Topic Based -->
                 <div onclick="showTopicSelection()" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
                     <div class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-4">
                         <i data-lucide="book-open"></i>
@@ -84,7 +83,6 @@
                     <p class="text-sm text-slate-500">Luyện tập sâu theo từng chủ đề cụ thể. AI gợi ý từ vựng và cấu trúc nâng cao.</p>
                 </div>
 
-                <!-- Part Only -->
                 <div onclick="showPartSelection()" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
                     <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 mb-4">
                         <i data-lucide="target"></i>
@@ -151,11 +149,23 @@
                     </div>
                     <h3 class="text-xl font-bold text-slate-800">Kết quả Part <span id="part-num-val">1</span></h3>
                 </div>
+                
                 <div id="part-detailed-scores" class="grid sm:grid-cols-2 gap-4 mb-6"></div>
-                <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Nhận xét của giám khảo:</h4>
-                    <div id="part-feedback-brief" class="text-slate-600 text-sm italic leading-relaxed"></div>
+
+                <div class="space-y-4 mb-6">
+                    <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100">
+                        <h4 class="text-xs font-bold text-indigo-700 uppercase mb-2 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i> Phiên bản cải thiện (Model Answer)
+                        </h4>
+                        <div id="part-improved-version" class="text-slate-700 text-sm leading-relaxed whitespace-pre-line italic"></div>
+                    </div>
+
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Nhận xét của giám khảo:</h4>
+                        <div id="part-feedback-brief" class="text-slate-600 text-sm italic leading-relaxed"></div>
+                    </div>
                 </div>
+
                 <div class="text-center">
                     <button id="intermediate-next-btn" onclick="nextStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all">
                         Tiếp tục <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>
@@ -203,13 +213,10 @@
                 </div>
             </section>
 
-            <!-- Audio Playback -->
+            <!-- Audio Review -->
             <section id="final-audio-preview" class="hidden bg-slate-100 p-6 rounded-3xl border border-slate-200 flex flex-col items-center gap-4 animate-fade-in">
                 <h4 class="font-bold text-slate-700">Review Last Recording</h4>
                 <audio id="audio-playback" controls class="w-full"></audio>
-                <button onclick="downloadRecording()" class="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium text-sm">
-                    <i data-lucide="download" class="w-4 h-4"></i> Download recording
-                </button>
             </section>
 
             <!-- Final Feedback Screen -->
@@ -227,24 +234,6 @@
                     <div class="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4" id="criteria-scores-summary"></div>
                 </div>
 
-                <div id="topic-suggestions-container" class="hidden mb-10 space-y-4">
-                    <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl">
-                        <h4 class="flex items-center gap-2 font-bold text-emerald-800 mb-4">
-                            <i data-lucide="sparkles" class="w-5 h-5"></i> Gợi ý từ vựng & Cấu trúc (Topic-based Mode)
-                        </h4>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <h5 class="text-xs font-bold text-emerald-600 uppercase mb-2">Vocabulary Recommendations</h5>
-                                <ul id="suggested-vocab" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
-                            </div>
-                            <div>
-                                <h5 class="text-xs font-bold text-emerald-600 uppercase mb-2">Structures to try</h5>
-                                <ul id="suggested-structures" class="list-disc list-inside text-sm text-slate-600 space-y-1"></ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="space-y-6" id="detailed-feedback-list"></div>
 
                 <div class="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-200">
@@ -260,7 +249,7 @@
     </div>
 
     <script>
-        const HARDCODED_API_KEY = ""; 
+        const HARDCODED_API_KEY = "AIzaSyB7qhwFW3ALo2o_p5yibaC-cvXLTQ8YKOY"; 
         let apiKey = HARDCODED_API_KEY || localStorage.getItem('ielts_gemini_api_key') || ""; 
 
         const QUESTION_BANK = {
@@ -279,21 +268,17 @@
                 { text: "Do you live in a house or an apartment?" }, { text: "Which is your favourite room in your home? Why?" },
                 { text: "Would you change anything about your home? Why / why not?" }, { text: "What do you think makes a house feel like a home?" },
                 { text: "Would you like to move to a different home in the future?" },
-                // Sports P1
                 { text: "Do you like playing sports?" }, { text: "Do you think doing sports is a good way to relax?" },
                 { text: "What sports are popular in your country?" }, { text: "Do you think it is important to play a sport?" }
             ],
             topicSets: [
                 {
-                    topic: "Consumerism - Possessions",
+                    topic: "Consumerism",
                     part1: [ { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop? Why?" }, { text: "Is it difficult for you to make choices when you shop?" }, { text: "Do you think expensive products are always better than cheaper ones?" } ],
-                    part2: "Describe something you own that you want to replace\nYou should say:\n• What it is\n• Where it is\n• How you got it\n• And explain why you want to replace it",
-                    part3: [ "What risks would you take when shopping online? Why?", "Will large shopping malls continue to be popular, despite the growth of internet shopping?", "What are the disadvantages of shopping in a street market?", "Why do you think some people replace things more often than others?", "Does consumption have any impact on the environment?", "Is advertising important?" ]
-                },
-                {
-                    topic: "Consumerism - Shopping Center",
-                    part1: [ { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop? Why?" }, { text: "Is it difficult for you to make choices when you shop?" }, { text: "Do you think expensive products are always better than cheaper ones?" } ],
-                    part2: "Describe a shopping center you often go to.\nYou should say:\n• Where is it?\n• How often do you go there?\n• How is its appearance?\n• Why do you often go there?",
+                    part2: [
+                        "Describe something you own that you want to replace\nYou should say:\n• What it is\n• Where it is\n• How you got it\n• And explain why you want to replace it",
+                        "Describe a shopping center you often go to.\nYou should say:\n• Where is it?\n• How often do you go there?\n• How is its appearance?\n• Why do you often go there?"
+                    ],
                     part3: [ "What risks would you take when shopping online? Why?", "Will large shopping malls continue to be popular, despite the growth of internet shopping?", "What are the disadvantages of shopping in a street market?", "Why do you think some people replace things more often than others?", "Does consumption have any impact on the environment?", "Is advertising important?" ]
                 },
                 {
@@ -320,7 +305,6 @@
                     part2: "Describe a house or apartment you would like to live in in the future.\nYou should say:\n• Where it is\n• What kind of accommodation it is\n• What it is like\n• And how you feel about this dream house/apartment.",
                     part3: [ "Do you think homes will look different in the future?", "How easy is it to find a place to live in your country?", "Do you think it’s better to rent or to buy a place to live in?", "Do you agree that there is a right age for young adults to stop living with their parents?", "What factors will contribute to whether a place is good to live in or not?" ]
                 },
-                // Combined Sports Topic
                 {
                     topic: "Sports",
                     part1: [ { text: "Do you like playing sports?" }, { text: "Do you think doing sports is a good way to relax?" }, { text: "What sports are popular in your country?" }, { text: "Do you think it is important to play a sport?" } ],
@@ -477,8 +461,8 @@
                     const blob = new Blob(state.audioChunks, { type: state.mediaRecorder.mimeType });
                     state.lastBlob = blob; state.isRecording = false; clearInterval(state.timerId); cancelAnimationFrame(state.visualizerId);
                     document.getElementById('recording-section').classList.add('hidden');
-                    document.getElementById('audio-playback').src = URL.createObjectURL(blob);
-                    document.getElementById('final-audio-preview').classList.remove('hidden');
+                    const playback = document.getElementById('audio-playback');
+                    if (playback) playback.src = URL.createObjectURL(blob);
                     if (state.audioContext) state.audioContext.close();
                     resolve(blob);
                 };
@@ -544,6 +528,8 @@
                 state.showingIntermediateResult = false;
                 document.getElementById('part-result-area').classList.add('hidden');
                 document.getElementById('main-test-area').classList.remove('hidden');
+                const playbackSection = document.getElementById('final-audio-preview');
+                if (playbackSection) playbackSection.classList.add('hidden');
                 
                 if (state.mode === 'part') { showFinalReport(); return; }
                 if (state.currentPart === 1) { state.currentPart = 2; updateFlow(); }
@@ -571,16 +557,19 @@
         function displayIntermediateScore(num) {
             state.showingIntermediateResult = true;
             document.getElementById('main-test-area').classList.add('hidden');
-            document.getElementById('final-audio-preview').classList.add('hidden');
+            const playbackSection = document.getElementById('final-audio-preview');
+            if (playbackSection) playbackSection.classList.remove('hidden');
+            
             const resArea = document.getElementById('part-result-area');
             resArea.classList.remove('hidden');
             
-            const partData = state.partResults[num] || { overall: 0, advice: "Lỗi dữ liệu", fc: {}, lr: {}, gra: {}, p: {} };
+            const partData = state.partResults[num] || { overall: 0, advice: "Lỗi dữ liệu", fc: {}, lr: {}, gra: {}, p: {}, improved_version: "" };
             const scoreVal = parseFloat(partData.overall || 0);
 
             document.getElementById('part-num-val').innerText = num;
             document.getElementById('part-score-val').innerText = scoreVal.toFixed(1);
             document.getElementById('part-feedback-brief').innerText = partData.advice || "No advice provided.";
+            document.getElementById('part-improved-version').innerText = partData.improved_version || "AI is generating a suggested response based on your content...";
 
             const criteria = [
                 { name: "Fluency", data: partData.fc || {} }, { name: "Lexical", data: partData.lr || {} },
@@ -634,14 +623,21 @@
 
         async function gradePart(num, blob) {
             const overlay = document.getElementById('grading-overlay'); overlay.classList.remove('hidden');
-            const defaultFailure = { overall: 0, fc: {score:0, feedback:"-"}, lr: {score:0, feedback:"-"}, gra: {score:0, feedback:"-"}, p: {score:0, feedback:"-"}, advice: "Chấm điểm thất bại." };
+            const defaultFailure = { overall: 0, fc: {score:0, feedback:"-"}, lr: {score:0, feedback:"-"}, gra: {score:0, feedback:"-"}, p: {score:0, feedback:"-"}, advice: "Chấm điểm thất bại.", improved_version: "" };
 
             if (!blob || blob.size < 1000) { state.partResults[num] = defaultFailure; overlay.classList.add('hidden'); return; }
             const base64 = await new Promise(r => {
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
 
-            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. Provide scores for 4 criteria and advice in Vietnamese. Return JSON only: { "overall": number, "fc": {"score": number, "feedback": "chi tiết"}, "lr": {"score": number, "feedback": "chi tiết"}, "gra": {"score": number, "feedback": "chi tiết"}, "p": {"score": number, "feedback": "chi tiết"}, "advice": "lời khuyên" }`;
+            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. 
+            Provide scores for 4 criteria and advice in Vietnamese. 
+            Additionally, create an "improved_version" which is a high-scoring model answer (Target Band 7.5 - 8.0, CEFR B2-C1). 
+            It should keep the user's original ideas but refine the vocabulary and grammar to be more precise and natural. 
+            Crucially, avoid using excessively rare, obscure, or over-complicated "academic" words that sound unnatural in spoken English. 
+            Focus on effective collocations, idiomatic expressions at the C1 level, and clear, varied sentence structures.
+            Return JSON only: { "overall": number, "fc": {"score": number, "feedback": "chi tiết"}, "lr": {"score": number, "feedback": "chi tiết"}, "gra": {"score": number, "feedback": "chi tiết"}, "p": {"score": number, "feedback": "chi tiết"}, "advice": "lời khuyên", "improved_version": "string" }`;
+            
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             try {
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }], systemInstruction: { parts: [{ text: prompt }] }, generationConfig: { responseMimeType: "application/json" } }) });
@@ -655,7 +651,8 @@
                     lr: result.lr || {score:0, feedback:""},
                     gra: result.gra || {score:0, feedback:""},
                     p: result.p || {score:0, feedback:""},
-                    advice: result.advice || ""
+                    advice: result.advice || "",
+                    improved_version: result.improved_version || ""
                 };
             } catch (e) { console.error(e); state.partResults[num] = defaultFailure; }
             overlay.classList.add('hidden');
@@ -664,7 +661,9 @@
         function showFinalReport() {
             document.getElementById('main-test-area').classList.add('hidden');
             document.getElementById('part-result-area').classList.add('hidden');
-            document.getElementById('final-audio-preview').classList.add('hidden');
+            const playbackSection = document.getElementById('final-audio-preview');
+            if (playbackSection) playbackSection.classList.add('hidden');
+            
             document.getElementById('feedback-area').classList.remove('hidden');
 
             const getAvg = (key) => {
@@ -685,6 +684,10 @@
             document.getElementById('detailed-feedback-list').innerHTML = relevantParts.map(([num, res]) => `
                 <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm mb-4">
                     <h5 class="font-bold text-slate-800 mb-2">Part ${num} Details (Band: ${(parseFloat(res.overall || 0)).toFixed(1)})</h5>
+                    <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-4">
+                        <h6 class="text-[10px] font-bold text-indigo-600 uppercase mb-1">Improved Version:</h6>
+                        <p class="text-slate-700 text-xs italic leading-relaxed">${res.improved_version || "N/A"}</p>
+                    </div>
                     <p class="text-slate-600 text-sm leading-relaxed">${res.advice || ""}</p>
                 </div>
             `).join('');
