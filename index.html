@@ -278,7 +278,10 @@
                 { text: "What kinds of animals are popular pets in your country? Why?" }, { text: "Do you think pollution is a big problem nowadays?" },
                 { text: "Do you live in a house or an apartment?" }, { text: "Which is your favourite room in your home? Why?" },
                 { text: "Would you change anything about your home? Why / why not?" }, { text: "What do you think makes a house feel like a home?" },
-                { text: "Would you like to move to a different home in the future?" }
+                { text: "Would you like to move to a different home in the future?" },
+                // Sports P1
+                { text: "Do you like playing sports?" }, { text: "Do you think doing sports is a good way to relax?" },
+                { text: "What sports are popular in your country?" }, { text: "Do you think it is important to play a sport?" }
             ],
             topicSets: [
                 {
@@ -316,6 +319,17 @@
                     part1: [ { text: "Do you live in a house or an apartment?" }, { text: "Which is your favourite room in your home? Why?" }, { text: "Would you change anything about your home? Why / why not?" }, { text: "What do you think makes a house feel like a home?" }, { text: "Would you like to move to a different home in the future?" } ],
                     part2: "Describe a house or apartment you would like to live in in the future.\nYou should say:\n• Where it is\n• What kind of accommodation it is\n• What it is like\n• And how you feel about this dream house/apartment.",
                     part3: [ "Do you think homes will look different in the future?", "How easy is it to find a place to live in your country?", "Do you think it’s better to rent or to buy a place to live in?", "Do you agree that there is a right age for young adults to stop living with their parents?", "What factors will contribute to whether a place is good to live in or not?" ]
+                },
+                // Combined Sports Topic
+                {
+                    topic: "Sports",
+                    part1: [ { text: "Do you like playing sports?" }, { text: "Do you think doing sports is a good way to relax?" }, { text: "What sports are popular in your country?" }, { text: "Do you think it is important to play a sport?" } ],
+                    part2: [
+                        "Describe your favourite sport. You should say:\n• What sport it is\n• How often you play it or watch it\n• How you play it\n• And explain why this is your favourite sport.",
+                        "Describe a live sport event you watched before\nYou should say:\n• When it happened\n• Where it took place\n• Who you watched it with\n• And explain how you felt about this experience",
+                        "Describe a sportsperson you admire\nYou should say:\n• Who the person is\n• What sport he or she does\n• When did you first hear about this person\n• And why you admire him or her"
+                    ],
+                    part3: [ "Do you think that competitive sports are damaging for children?", "What characteristics do you think an athlete should have?", "Why are there so few top athletes?", "What’s the best way to become a top athlete?" ]
                 }
             ]
         };
@@ -385,13 +399,28 @@
             if (mode === 'full') {
                 const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 4);
                 const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
-                state.activeExam = { p1: shuffledP1, p2: randomSet.part2, p3: [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3), topic: randomSet.topic };
+                let p2Text = randomSet.part2;
+                if (Array.isArray(p2Text)) {
+                    p2Text = p2Text[Math.floor(Math.random() * p2Text.length)];
+                }
+                state.activeExam = { p1: shuffledP1, p2: p2Text, p3: [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3), topic: randomSet.topic };
             } else if (mode === 'topic') {
                 const set = QUESTION_BANK.topicSets[detail];
-                state.activeExam = { p1: set.part1, p2: set.part2, p3: set.part3, topic: set.topic };
+                let p2Text = set.part2;
+                if (Array.isArray(p2Text)) {
+                    p2Text = p2Text[Math.floor(Math.random() * p2Text.length)];
+                }
+                state.activeExam = { p1: set.part1, p2: p2Text, p3: set.part3, topic: set.topic };
             } else if (mode === 'part') {
                 if (detail === 1) state.activeExam = { p1: [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5) };
-                if (detail === 2) state.activeExam = { p2: QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)].part2 };
+                if (detail === 2) {
+                    const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
+                    let p2Text = randomSet.part2;
+                    if (Array.isArray(p2Text)) {
+                        p2Text = p2Text[Math.floor(Math.random() * p2Text.length)];
+                    }
+                    state.activeExam = { p2: p2Text };
+                }
                 if (detail === 3) state.activeExam = { p3: [...QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)].part3].sort(() => 0.5 - Math.random()).slice(0, 4) };
             }
 
