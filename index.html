@@ -25,11 +25,10 @@
         <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
                 <h1 class="text-3xl font-bold text-indigo-700 flex items-center gap-3 cursor-pointer" onclick="location.reload()">
-                    <!-- Thay thế Icon bằng Logo.jpg -->
                     <img src="logo.jpg" alt="Logo" class="w-10 h-10 object-contain rounded-lg shadow-sm" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1904/1904425.png';">
                     IELTS Speaking AI
                 </h1>
-                <p class="text-slate-500">Professional Practice Environment created by Thanh Tam</p>
+                <p class="text-slate-500">Professional Practice Environment created by Hoang Thi Thanh Tam</p>
             </div>
             <div class="flex items-center gap-2">
                 <button id="settings-btn" onclick="toggleSettings()" class="p-3 bg-white rounded-xl shadow-sm border border-slate-200 hover:bg-slate-50 transition-all text-slate-500" title="Cài đặt API Key">
@@ -45,7 +44,7 @@
                     <i data-lucide="key" class="text-indigo-600"></i>
                     Cấu hình API Key
                 </h3>
-                <p class="text-sm text-slate-500 mb-6">Bạn có thể sử dụng Key mặc định hoặc tự nhập Key cá nhân. Dữ liệu được lưu trong trình duyệt.</p>
+                <p class="text-sm text-slate-500 mb-6">Để trống nếu bạn muốn sử dụng khóa mặc định của hệ thống.</p>
                 <input type="password" id="api-key-input" placeholder="Nhập Gemini API Key tại đây..." class="w-full p-4 bg-slate-100 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:outline-none mb-6 transition-all">
                 <div class="flex gap-3">
                     <button onclick="toggleSettings()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Đóng</button>
@@ -68,11 +67,6 @@
                     </div>
                     <h3 class="font-bold text-lg mb-2">Full Mock Test</h3>
                     <p class="text-sm text-slate-500">Giả lập bài thi thật 3 phần (Part 1-2-3). Part 3 theo sát chủ đề Part 2.</p>
-                    <div class="mt-4 flex gap-2">
-                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded">P1: 4Q</span>
-                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded">P2: 1Q</span>
-                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded">P3: 3Q</span>
-                    </div>
                 </div>
 
                 <div onclick="showTopicSelection()" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
@@ -80,7 +74,7 @@
                         <i data-lucide="book-open"></i>
                     </div>
                     <h3 class="font-bold text-lg mb-2">Topic-based</h3>
-                    <p class="text-sm text-slate-500">Luyện tập sâu theo từng chủ đề cụ thể. AI gợi ý từ vựng và cấu trúc nâng cao.</p>
+                    <p class="text-sm text-slate-500">Luyện tập sâu theo từng chủ đề cụ thể.</p>
                 </div>
 
                 <div onclick="showPartSelection()" class="mode-card bg-white p-6 rounded-3xl border-2 border-transparent shadow-sm cursor-pointer transition-all">
@@ -88,7 +82,7 @@
                         <i data-lucide="target"></i>
                     </div>
                     <h3 class="font-bold text-lg mb-2">Part Practice</h3>
-                    <p class="text-sm text-slate-500">Tập trung luyện tập riêng lẻ từng phần để khắc phục điểm yếu nhanh nhất.</p>
+                    <p class="text-sm text-slate-500">Tập trung luyện tập riêng lẻ từng phần.</p>
                 </div>
             </div>
         </div>
@@ -109,36 +103,19 @@
             </button>
             <h2 class="text-2xl font-bold">Chọn phần thi muốn luyện tập</h2>
             <div class="grid gap-4">
-                <button onclick="generateExam('part', 1)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all flex justify-between items-center group">
-                    <div>
-                        <h4 class="font-bold text-lg">Part 1: Introduction & Interview</h4>
-                        <p class="text-sm text-slate-500">Luyện tập 5 câu hỏi cá nhân ngẫu nhiên.</p>
-                    </div>
-                    <i data-lucide="chevron-right" class="group-hover:translate-x-1 transition-transform"></i>
-                </button>
-                <button onclick="generateExam('part', 2)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all flex justify-between items-center group">
-                    <div>
-                        <h4 class="font-bold text-lg">Part 2: Individual Long Turn</h4>
-                        <p class="text-sm text-slate-500">Luyện tập 1 chủ đề nói kèm thời gian chuẩn bị.</p>
-                    </div>
-                    <i data-lucide="chevron-right" class="group-hover:translate-x-1 transition-transform"></i>
-                </button>
-                <button onclick="generateExam('part', 3)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all flex justify-between items-center group">
-                    <div>
-                        <h4 class="font-bold text-lg">Part 3: Two-way Discussion</h4>
-                        <p class="text-sm text-slate-500">Luyện tập 4 câu hỏi thảo luận chuyên sâu.</p>
-                    </div>
-                    <i data-lucide="chevron-right" class="group-hover:translate-x-1 transition-transform"></i>
-                </button>
+                <button onclick="generateExam('part', 1)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all">Part 1: Introduction</button>
+                <button onclick="generateExam('part', 2)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all">Part 2: Long Turn</button>
+                <button onclick="generateExam('part', 3)" class="p-6 bg-white border-2 border-slate-100 rounded-2xl hover:border-indigo-500 text-left transition-all">Part 3: Discussion</button>
             </div>
         </div>
 
         <!-- Exam UI -->
         <div id="exam-container" class="hidden space-y-6">
-            <div id="grading-overlay" class="hidden flex flex-col items-center justify-center p-12 bg-white/90 backdrop-blur rounded-3xl border-2 border-indigo-200 animate-fade-in z-50">
+            <!-- Grading Overlay -->
+            <div id="grading-overlay" class="hidden fixed inset-0 bg-white/90 backdrop-blur flex flex-col items-center justify-center z-[200]">
                 <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
                 <h3 class="text-xl font-bold text-slate-800" id="grading-status-text">AI is analyzing...</h3>
-                <p class="text-slate-500 text-sm mt-2" id="grading-subtext">Vui lòng chờ trong giây lát.</p>
+                <p class="text-slate-500 text-sm mt-2" id="grading-subtext">Đang tạo bài mẫu dựa trên câu trả lời của bạn...</p>
             </div>
 
             <!-- Intermediate Part Score Screen -->
@@ -149,62 +126,48 @@
                     </div>
                     <h3 class="text-xl font-bold text-slate-800">Kết quả Part <span id="part-num-val">1</span></h3>
                 </div>
-                
                 <div id="part-detailed-scores" class="grid sm:grid-cols-2 gap-4 mb-6"></div>
-
                 <div class="space-y-4 mb-6">
                     <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100">
                         <h4 class="text-xs font-bold text-indigo-700 uppercase mb-2 flex items-center gap-2">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i> Phiên bản cải thiện (Model Answer)
+                            <i data-lucide="sparkles" class="w-4 h-4"></i> Phiên bản cải thiện (Model Answers - Based on YOUR talk)
                         </h4>
                         <div id="part-improved-version" class="text-slate-700 text-sm leading-relaxed whitespace-pre-line italic"></div>
                     </div>
-
                     <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                         <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Nhận xét của giám khảo:</h4>
                         <div id="part-feedback-brief" class="text-slate-600 text-sm italic leading-relaxed"></div>
                     </div>
                 </div>
-
                 <div class="text-center">
-                    <button id="intermediate-next-btn" onclick="nextStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all">
-                        Tiếp tục <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>
-                    </button>
+                    <button id="intermediate-next-btn" onclick="nextStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all">Tiếp tục</button>
                 </div>
             </section>
 
-            <!-- Examiner Box -->
-            <section id="main-test-area" class="bg-white rounded-3xl p-8 shadow-sm border border-indigo-100 relative overflow-hidden">
-                <div class="relative z-10 flex flex-col items-center text-center">
-                    <div id="part-indicator" class="mb-2 px-4 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-widest">Part 1</div>
-                    <div id="narrator-text" class="text-slate-500 italic mb-4">The examiner is preparing...</div>
-                    <div id="question-display" class="text-2xl md:text-3xl font-bold text-slate-800 mb-8 min-h-[120px] flex items-center justify-center animate-fade-in text-center px-4"></div>
+            <!-- Test Area -->
+            <section id="main-test-area" class="bg-white rounded-3xl p-8 shadow-sm border border-indigo-100 text-center">
+                <div id="part-indicator" class="mb-2 px-4 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase inline-block">Part 1</div>
+                <div id="narrator-text" class="text-slate-500 italic mb-4">Examiner is ready...</div>
+                <div id="question-display" class="text-2xl md:text-3xl font-bold text-slate-800 mb-8 min-h-[120px] flex items-center justify-center px-4"></div>
 
-                    <div id="p2-timer-container" class="hidden mb-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 w-full max-w-xs">
-                        <div id="p2-timer-label" class="text-xs font-bold text-amber-700 uppercase mb-1">Preparation Time</div>
-                        <div id="p2-timer-countdown" class="text-4xl font-mono font-black text-amber-600">01:00</div>
-                    </div>
+                <div id="p2-timer-container" class="hidden mb-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 mx-auto max-w-xs">
+                    <div class="text-xs font-bold text-amber-700 uppercase mb-1">Thời gian chuẩn bị</div>
+                    <div id="p2-timer-countdown" class="text-4xl font-mono font-black text-amber-600">01:00</div>
+                </div>
 
-                    <div class="flex flex-wrap justify-center gap-4">
-                        <button id="speak-btn" onclick="repeatQuestion()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg transition-colors">
-                            <i data-lucide="volume-2" class="w-5 h-5"></i> Repeat
-                        </button>
-                        <button id="p2-prep-btn" onclick="startP2Prep()" class="hidden flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl shadow-md transition-all">
-                            Start Prep <i data-lucide="timer" class="w-5 h-5"></i>
-                        </button>
-                        <button id="next-btn" onclick="nextStep()" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all">
-                            Next <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button id="speak-btn" onclick="repeatQuestion()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg transition-colors"><i data-lucide="volume-2"></i> Repeat</button>
+                    <button id="p2-prep-btn" onclick="startP2Prep()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-bold transition-all">Bắt đầu chuẩn bị</button>
+                    <button id="next-btn" onclick="nextStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-md transition-all">Tiếp theo</button>
                 </div>
             </section>
 
             <!-- Recording HUD -->
             <section id="recording-section" class="bg-slate-900 rounded-3xl p-6 text-white shadow-xl flex items-center justify-between hidden">
                 <div class="flex items-center gap-6">
-                    <div id="rec-dot" class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                     <div>
-                        <div class="text-xs uppercase font-bold text-slate-400 tracking-tighter">Recording Part <span id="rec-part-num">1</span></div>
+                        <div class="text-xs uppercase font-bold text-slate-400">Đang ghi âm Part <span id="rec-part-num">1</span></div>
                         <div id="timer-display" class="text-2xl font-mono font-bold">0:00</div>
                     </div>
                 </div>
@@ -215,17 +178,15 @@
 
             <!-- Audio Review -->
             <section id="final-audio-preview" class="hidden bg-slate-100 p-6 rounded-3xl border border-slate-200 flex flex-col items-center gap-4 animate-fade-in">
-                <h4 class="font-bold text-slate-700">Review Last Recording</h4>
+                <h4 class="font-bold text-slate-700 text-sm">Nghe lại bản ghi</h4>
                 <audio id="audio-playback" controls class="w-full"></audio>
             </section>
 
-            <!-- Final Feedback Screen -->
+            <!-- Final Feedback -->
             <section id="feedback-area" class="hidden bg-white rounded-3xl p-8 shadow-2xl border-2 border-indigo-100 animate-fade-in">
                 <div class="text-center mb-8 border-b pb-6">
                     <h2 class="text-3xl font-black text-slate-800 mb-2 uppercase">IELTS Speaking Full Report</h2>
-                    <p class="text-slate-500" id="final-report-subtitle">Based on Official Band Descriptors</p>
                 </div>
-
                 <div class="grid md:grid-cols-4 gap-6 mb-10">
                     <div class="bg-indigo-600 text-white p-8 rounded-3xl flex flex-col items-center justify-center shadow-xl">
                         <span class="text-xs uppercase font-bold opacity-80 mb-1">Overall Band</span>
@@ -233,97 +194,90 @@
                     </div>
                     <div class="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4" id="criteria-scores-summary"></div>
                 </div>
-
                 <div class="space-y-6" id="detailed-feedback-list"></div>
-
                 <div class="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                    <h4 class="font-bold text-slate-800 mb-2">Examiner's Final Advice:</h4>
+                    <h4 class="font-bold text-slate-800 mb-2">Lời khuyên từ giám khảo:</h4>
                     <p id="final-advice" class="text-slate-600 text-sm leading-relaxed italic"></p>
                 </div>
-
-                <button onclick="location.reload()" class="mt-8 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg">
-                    Back to Dashboard
-                </button>
+                <button onclick="location.reload()" class="mt-8 w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg">Quay lại trang chủ</button>
             </section>
         </div>
     </div>
 
     <script>
-        const HARDCODED_API_KEY = "AIzaSyB7qhwFW3ALo2o_p5yibaC-cvXLTQ8YKOY"; 
-        let apiKey = HARDCODED_API_KEY || localStorage.getItem('ielts_gemini_api_key') || ""; 
+        const apiKey = ""; 
 
         const QUESTION_BANK = {
             part1: [
-                { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop? Why?" },
-                { text: "Is it difficult for you to make choices when you shop?" }, { text: "Do you think expensive products are always better than cheaper ones?" },
-                { text: "Do you think hobbies are important?" }, { text: "Which hobby do you like to try in the future?" },
-                { text: "What do you like to do on the weekends?" }, { text: "Do you like to spend your free time with families or friends?" },
-                { text: "What will you do if you go out?" }, { text: "What kind of TV programs do you like?" },
-                { text: "Do you prefer to read local news or international news?" }, { text: "Who is your favorite celebrity in your country?" },
-                { text: "What types of people become famous in your country?" }, { text: "Would you like to be a famous person?" },
-                { text: "Do you like any foreign celebrities?" }, { text: "How do celebrities influence their fans in your country?" },
-                { text: "Is there much pollution where you live?" }, { text: "Are residents in your town good at recycling waste?" },
-                { text: "Do you take an interest in nature?" }, { text: "Have you ever participated in any environmental events?" },
-                { text: "What kinds of animals are popular pets in your country? Why?" }, { text: "Do you think pollution is a big problem nowadays?" },
-                { text: "Do you live in a house or an apartment?" }, { text: "Which is your favourite room in your home? Why?" },
-                { text: "Would you change anything about your home? Why / why not?" }, { text: "What do you think makes a house feel like a home?" },
-                { text: "Would you like to move to a different home in the future?" },
-                { text: "Do you like playing sports?" }, { text: "Do you think doing sports is a good way to relax?" },
-                { text: "What sports are popular in your country?" }, { text: "Do you think it is important to play a sport?" }
+                { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop?" },
+                { text: "Do you think hobbies are important?" }, { text: "What do you like to do on the weekends?" },
+                { text: "Do you prefer to read local news or international news?" }, { text: "Who is your favorite celebrity?" },
+                { text: "Is there much pollution where you live?" }, { text: "Do you live in a house or an apartment?" },
+                { text: "Do you like playing sports?" }, { text: "What sports are popular in your country?" },
+                { text: "Do you prefer to study in the morning or the evening?" }, { text: "What was your favorite subject at school?" }
             ],
             topicSets: [
                 {
                     topic: "Consumerism",
-                    part1: [ { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop? Why?" }, { text: "Is it difficult for you to make choices when you shop?" }, { text: "Do you think expensive products are always better than cheaper ones?" } ],
+                    part1: [ { text: "Do you like shopping?" }, { text: "Do you compare prices when you shop? Why?" }, { text: "Is it difficult for you to make choices?" }, { text: "Do you think expensive products are always better?" } ],
                     part2: [
                         "Describe something you own that you want to replace\nYou should say:\n• What it is\n• Where it is\n• How you got it\n• And explain why you want to replace it",
                         "Describe a shopping center you often go to.\nYou should say:\n• Where is it?\n• How often do you go there?\n• How is its appearance?\n• Why do you often go there?"
                     ],
-                    part3: [ "What risks would you take when shopping online? Why?", "Will large shopping malls continue to be popular, despite the growth of internet shopping?", "What are the disadvantages of shopping in a street market?", "Why do you think some people replace things more often than others?", "Does consumption have any impact on the environment?", "Is advertising important?" ]
+                    part3: [ "What risks would you take when shopping online?", "Will large shopping malls continue to be popular?", "What are the disadvantages of shopping in a street market?", "Is advertising important?" ]
                 },
                 {
                     topic: "Fame and Media",
-                    part1: [ { text: "What kind of TV programs do you like?" }, { text: "Do you prefer to read local news or international news?" }, { text: "Who is your favorite celebrity in your country?" }, { text: "What types of people become famous in your country?" }, { text: "Would you like to be a famous person?" } ],
+                    part1: [ { text: "What kind of TV programs do you like?" }, { text: "Do you prefer local or international news?" }, { text: "Who is your favorite celebrity?" }, { text: "Would you like to be famous?" } ],
                     part2: "Describe a famous person who is not from your country you would like to meet.\nYou should say:\n• Who that person is\n• Why you admire him/her\n• What would you say if you met him/her",
-                    part3: [ "Do you think the internet influences the types of news stories people hear about?", "Why do you think the internet is becoming a more popular source of news?", "What are some of the disadvantages of being a celebrity?", "What are some of the advantages of being a celebrity?", "Do you think the media is putting too much attention on famous people?", "How do most people find out about the news in your country?" ]
+                    part3: [ "Do you think the internet influences news?", "What are the disadvantages of being a celebrity?", "Is the media putting too much attention on famous people?", "Why are some people obsessed with celebrities?" ]
                 },
                 {
                     topic: "Home",
-                    part1: [ { text: "Do you live in a house or an apartment?" }, { text: "Which is your favourite room in your home? Why?" }, { text: "Would you change anything about your home? Why / why not?" }, { text: "What do you think makes a house feel like a home?" }, { text: "Would you like to move to a different home in the future?" } ],
-                    part2: "Describe a house or apartment you would like to live in in the future.\nYou should say:\n• Where it is\n• What kind of accommodation it is\n• What it is like\n• And how you feel about this dream house/apartment.",
-                    part3: [ "Do you think homes will look different in the future?", "How easy is it to find a place to live in your country?", "Do you think it’s better to rent or to buy a place to live in?", "Do you agree that there is a right age for young adults to stop living with their parents?", "What factors will contribute to whether a place is good to live in or not?" ]
+                    part1: [ { text: "Do you live in a house or an apartment?" }, { text: "Which is your favourite room? Why?" }, { text: "Would you change anything about your home?" }, { text: "What makes a house feel like a home?" } ],
+                    part2: "Describe a house or apartment you would like to live in in the future.\nYou should say:\n• Where it is\n• What kind of accommodation it is\n• What it is like\n• And how you feel about this dream house.",
+                    part3: [ "Do you think homes will look different in the future?", "Is it better to rent or buy?", "At what age should young adults move out?", "How can we make houses more environmentally friendly?" ]
                 },
                 {
                     topic: "Leisure Time",
-                    part1: [ { text: "Do you think hobbies are important?" }, { text: "Which hobby do you like to try in the future?" }, { text: "What do you like to do on the weekends?" }, { text: "Do you like to spend your free time with families or friends?" }, { text: "What will you do if you go out?" } ],
-                    part2: "Describe your leisure time. You should say:\n• How you usually spend your leisure time\n• Who you prefer to spend your leisure time with\n• What leisure activities are popular in your country\n• And explain why leisure time is important to you",
-                    part3: [ "How has the way we spend free time changed over the years?", "Do you think only old people have time for leisure?", "Do women have more leisure time than men?", "Some people believe that traditional leisure activities are losing popularity. Why do you think this is happening?", "Do you think it’s important for people to try new leisure activities? Why?" ]
+                    part1: [ { text: "Do you think hobbies are important?" }, { text: "What do you do on weekends?" }, { text: "Do you spend free time with family or friends?" } ],
+                    part2: "Describe your leisure time. You should say:\n• How you usually spend your leisure time\n• Who you prefer to spend it with\n• What leisure activities are popular in your country\n• And explain why leisure time is important to you",
+                    part3: [ "How has leisure time changed over the years?", "Do women have more leisure time than men?", "Why are traditional activities losing popularity?", "Do you think having too much free time is a problem?" ]
                 },
                 {
                     topic: "Natural World",
-                    part1: [ { text: "Is there much pollution where you live?" }, { text: "Are residents in your town good at recycling waste?" }, { text: "Do you take an interest in nature?" }, { text: "Have you ever participated in any environmental events?" }, { text: "What kinds of animals are popular pets in your country? Why?" } ],
+                    part1: [ { text: "Is there much pollution where you live?" }, { text: "Are you good at recycling?" }, { text: "Do you take interest in nature?" } ],
                     part2: "Describe an environmental problem in your hometown.\nYou should say:\n• What problem is it?\n• What causes the problem?\n• What can be done to address the problem?",
-                    part3: [ "What do you think is the main danger the world faces in terms of the environment?", "In which way do people damage our planet?" ]
+                    part3: [ "What is the main danger the world faces regarding the environment?", "In which way do people damage our planet?", "How can education help save the environment?", "Should governments or individuals take the lead on climate change?" ]
                 },
                 {
                     topic: "Sports",
-                    part1: [ { text: "Do you like playing sports?" }, { text: "Do you think doing sports is a good way to relax?" }, { text: "What sports are popular in your country?" }, { text: "Do you think it is important to play a sport?" } ],
+                    part1: [ { text: "Do you like playing sports?" }, { text: "Is sports a good way to relax?" }, { text: "What sports are popular in your country?" }, { text: "Do you think it is important to play a sport?"} ],
                     part2: [
-                        "Describe your favourite sport. You should say:\n• What sport it is\n• How often you play it or watch it\n• How you play it\n• And explain why this is your favourite sport.",
-                        "Describe a live sport event you watched before\nYou should say:\n• When it happened\n• Where it took place\n• Who you watched it with\n• And explain how you felt about this experience",
-                        "Describe a sportsperson you admire\nYou should say:\n• Who the person is\n• What sport he or she does\n• When did you first hear about this person\n• And why you admire him or her"
+                        "Describe your favourite sport. You should say:\n• What sport it is\n• How often you play it\n• And explain why this is your favourite sport.",
+                        "Describe a live sport event you watched\nYou should say:\n• When it happened\n• Where it took place\n• And explain how you felt",
+                        "Describe a sportsperson you admire\nYou should say:\n• Who the person is\n• What sport they do\n• And why you admire them"
                     ],
-                    part3: [ "Do you think that competitive sports are damaging for children?", "What characteristics do you think an athlete should have?", "Why are there so few top athletes?", "What’s the best way to become a top athlete?" ]
+                    part3: [ "Are competitive sports damaging for children?", "What characteristics should an athlete have?", "Why are there so few top athletes?", "Do sports stars earn too much money?" ]
                 }
             ]
         };
 
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        QUESTION_BANK.topicSets.sort((a, b) => a.topic.localeCompare(b.topic));
+
         let state = {
             mode: '', practicePart: 0, activeExam: null, currentPart: 1, p1Index: -1, p3Index: -1, p2Phase: 'intro',
             mediaRecorder: null, audioChunks: [], isRecording: false, timer: 0, timerId: null,
-            partResults: { 1: null, 2: null, 3: null }, lastBlob: null, p2SpeakingInterval: null,
-            audioContext: null, analyser: null, visualizerId: null, showingIntermediateResult: false,
-            suggestions: { vocab: [], structures: [] }
+            partResults: { 1: null, 2: null, 3: null }, lastBlob: null, visualizerId: null,
+            questionsAskedInCurrentPart: []
         };
 
         function ieltsRounding(score) {
@@ -335,14 +289,12 @@
         }
 
         function toggleSettings() {
-            const modal = document.getElementById('settings-modal');
-            modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) document.getElementById('api-key-input').value = apiKey;
+            document.getElementById('settings-modal').classList.toggle('hidden');
         }
 
         function saveApiKey() {
             const val = document.getElementById('api-key-input').value.trim();
-            if (val) { apiKey = val; localStorage.setItem('ielts_gemini_api_key', val); toggleSettings(); }
+            if (val) { localStorage.setItem('ielts_gemini_api_key', val); toggleSettings(); location.reload(); }
         }
 
         function showTopicSelection() {
@@ -352,7 +304,7 @@
             container.innerHTML = QUESTION_BANK.topicSets.map((set, idx) => `
                 <button onclick="generateExam('topic', ${idx})" class="p-4 bg-white border border-slate-200 rounded-2xl hover:border-indigo-500 text-left transition-all">
                     <h4 class="font-bold text-slate-800">${set.topic}</h4>
-                    <p class="text-xs text-slate-500 mt-1">Full 3 parts practice about this theme.</p>
+                    <p class="text-xs text-slate-500 mt-1">Mock test 3 phần chủ đề này.</p>
                 </button>
             `).join('');
             lucide.createIcons();
@@ -371,99 +323,110 @@
         }
 
         function generateExam(mode, detail) {
-            if (!apiKey) { toggleSettings(); return; }
             speak("");
             state = {
                 mode: mode, practicePart: mode === 'part' ? detail : 0, currentPart: mode === 'part' ? detail : 1,
                 p1Index: -1, p3Index: -1, p2Phase: 'intro', audioChunks: [],
                 partResults: { 1: null, 2: null, 3: null }, isRecording: false, showingIntermediateResult: false,
-                suggestions: { vocab: [], structures: [] }
+                questionsAskedInCurrentPart: []
             };
 
             if (mode === 'full') {
-                const shuffledP1 = [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 4);
+                const shuffledP1 = shuffle([...QUESTION_BANK.part1]).slice(0, 4);
                 const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
-                let p2Text = randomSet.part2;
-                if (Array.isArray(p2Text)) {
-                    p2Text = p2Text[Math.floor(Math.random() * p2Text.length)];
-                }
-                state.activeExam = { p1: shuffledP1, p2: p2Text, p3: [...randomSet.part3].sort(() => 0.5 - Math.random()).slice(0, 3), topic: randomSet.topic };
+                const shuffledP3 = shuffle([...randomSet.part3]).slice(0, 3);
+                state.activeExam = { p1: shuffledP1, p2: Array.isArray(randomSet.part2) ? randomSet.part2[Math.floor(Math.random() * randomSet.part2.length)] : randomSet.part2, p3: shuffledP3, topic: randomSet.topic };
             } else if (mode === 'topic') {
                 const set = QUESTION_BANK.topicSets[detail];
-                let p2Text = set.part2;
-                if (Array.isArray(p2Text)) {
-                    p2Text = p2Text[Math.floor(Math.random() * p2Text.length)];
-                }
-                state.activeExam = { p1: set.part1, p2: p2Text, p3: set.part3, topic: set.topic };
+                const shuffledP1 = shuffle([...set.part1]);
+                const shuffledP3 = shuffle([...set.part3]).slice(0, 3);
+                state.activeExam = { p1: shuffledP1, p2: Array.isArray(set.part2) ? set.part2[Math.floor(Math.random() * set.part2.length)] : set.part2, p3: shuffledP3, topic: set.topic };
             } else if (mode === 'part') {
-                if (detail === 1) state.activeExam = { p1: [...QUESTION_BANK.part1].sort(() => 0.5 - Math.random()).slice(0, 5) };
+                if (detail === 1) state.activeExam = { p1: shuffle([...QUESTION_BANK.part1]).slice(0, 5) };
                 if (detail === 2) {
-                    const randomSet = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
-                    let p2Text = randomSet.part2;
-                    if (Array.isArray(p2Text)) {
-                        p2Text = p2Text[Math.floor(Math.random() * p2Text.length)];
-                    }
-                    state.activeExam = { p2: p2Text };
+                    const set = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
+                    state.activeExam = { p2: Array.isArray(set.part2) ? set.part2[Math.floor(Math.random() * set.part2.length)] : set.part2 };
                 }
-                if (detail === 3) state.activeExam = { p3: [...QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)].part3].sort(() => 0.5 - Math.random()).slice(0, 4) };
+                if (detail === 3) {
+                    const set = QUESTION_BANK.topicSets[Math.floor(Math.random() * QUESTION_BANK.topicSets.length)];
+                    state.activeExam = { p3: shuffle([...set.part3]).slice(0, 4) };
+                }
             }
 
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('topic-selection-screen').classList.add('hidden');
             document.getElementById('part-selection-screen').classList.add('hidden');
             document.getElementById('exam-container').classList.remove('hidden');
-            document.getElementById('feedback-area').classList.add('hidden');
-            document.getElementById('part-result-area').classList.add('hidden');
             document.getElementById('main-test-area').classList.remove('hidden');
             updateFlow();
+        }
+
+        async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return response;
+                    if (response.status === 403) throw new Error("API Failure: 403");
+                    if (i === retries) throw new Error(`API Failure: ${response.status}`);
+                } catch (err) {
+                    if (i === retries) throw err;
+                }
+                await new Promise(r => setTimeout(r, delay));
+                delay *= 2;
+            }
         }
 
         async function startPartRecording() {
             if (state.isRecording) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                state.analyser = state.audioContext.createAnalyser();
-                const source = state.audioContext.createMediaStreamSource(stream);
-                source.connect(state.analyser);
-                state.analyser.fftSize = 64;
-                const bufferLength = state.analyser.frequencyBinCount;
+                const audioCtx = new AudioContext();
+                const analyser = audioCtx.createAnalyser();
+                const source = audioCtx.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 64;
+                const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
                 const bars = document.querySelectorAll('.bar');
+                
                 function draw() {
                     if (!state.isRecording) return;
                     state.visualizerId = requestAnimationFrame(draw);
-                    state.analyser.getByteFrequencyData(dataArray);
+                    analyser.getByteFrequencyData(dataArray);
                     bars.forEach((bar, i) => { bar.style.height = `${Math.max(4, (dataArray[i] || 0) / 4)}px`; });
                 }
                 draw();
+
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
                 state.mediaRecorder = new MediaRecorder(stream, { mimeType });
                 state.audioChunks = [];
                 state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.audioChunks.push(e.data); };
                 state.mediaRecorder.start();
                 state.isRecording = true; state.timer = 0;
+                
                 document.getElementById('recording-section').classList.remove('hidden');
                 document.getElementById('rec-part-num').innerText = state.currentPart;
                 state.timerId = setInterval(() => {
                     state.timer++;
                     document.getElementById('timer-display').innerText = `${Math.floor(state.timer / 60)}:${(state.timer % 60).toString().padStart(2, '0')}`;
                 }, 1000);
-            } catch (err) { alert("Microphone access denied."); }
+            } catch (err) { alert("Vui lòng cho phép quyền micro."); }
         }
 
         function stopPartRecording() {
             return new Promise((resolve) => {
                 if (!state.mediaRecorder || state.mediaRecorder.state === "inactive") {
-                    state.isRecording = false; clearInterval(state.timerId); cancelAnimationFrame(state.visualizerId); return resolve(null);
+                    state.isRecording = false; clearInterval(state.timerId); return resolve(null);
                 }
                 state.mediaRecorder.onstop = () => {
                     const blob = new Blob(state.audioChunks, { type: state.mediaRecorder.mimeType });
-                    state.lastBlob = blob; state.isRecording = false; clearInterval(state.timerId); cancelAnimationFrame(state.visualizerId);
+                    state.isRecording = false;
+                    clearInterval(state.timerId);
+                    cancelAnimationFrame(state.visualizerId);
                     document.getElementById('recording-section').classList.add('hidden');
                     const playback = document.getElementById('audio-playback');
                     if (playback) playback.src = URL.createObjectURL(blob);
-                    if (state.audioContext) state.audioContext.close();
+                    state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
                     resolve(blob);
                 };
                 state.mediaRecorder.stop();
@@ -485,11 +448,13 @@
                 if (state.p1Index === -1) {
                     narrator.innerText = "Introduction";
                     display.innerText = "Now, in this first part, I'd like to ask you some personal questions. Are you ready?";
-                    nextBtn.innerText = "Start Part 1";
+                    nextBtn.innerText = "Bắt đầu Part 1";
                 } else {
-                    narrator.innerText = `Question ${state.p1Index + 1} of ${state.activeExam.p1.length}`;
-                    display.innerText = state.activeExam.p1[state.p1Index].text;
-                    nextBtn.innerText = (state.p1Index === state.activeExam.p1.length - 1) ? "Finish Part 1" : "Next Question";
+                    const qText = state.activeExam.p1[state.p1Index].text;
+                    state.questionsAskedInCurrentPart.push(qText);
+                    narrator.innerText = `Câu hỏi ${state.p1Index + 1} / ${state.activeExam.p1.length}`;
+                    display.innerText = qText;
+                    nextBtn.innerText = (state.p1Index === state.activeExam.p1.length - 1) ? "Kết thúc Part 1" : "Câu tiếp theo";
                     startPartRecording();
                 }
             } else if (state.currentPart === 2) {
@@ -499,21 +464,24 @@
                     display.innerText = "I'm going to give you a topic. You will have 1 minute to prepare.";
                     nextBtn.classList.add('hidden'); p2PrepBtn.classList.remove('hidden');
                 } else {
+                    state.questionsAskedInCurrentPart = [state.activeExam.p2];
                     narrator.innerText = state.p2Phase === 'prep' ? "Preparation (1 min)" : "Speaking (2 mins)";
-                    display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl italic border border-indigo-100">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
+                    display.innerHTML = `<div class="text-left bg-indigo-50 p-6 rounded-xl italic border border-indigo-100 shadow-sm">${state.activeExam.p2.replace(/\n/g, '<br>')}</div>`;
                     if (state.p2Phase === 'prep') { nextBtn.classList.add('hidden'); p2Timer.classList.remove('hidden'); }
-                    else { nextBtn.innerText = "Finish Part 2"; p2Timer.classList.remove('hidden'); startPartRecording(); }
+                    else { nextBtn.innerText = "Kết thúc Part 2"; p2Timer.classList.remove('hidden'); startPartRecording(); }
                 }
             } else if (state.currentPart === 3) {
                 indicator.innerText = "Part 3";
                 if (state.p3Index === -1) {
                     narrator.innerText = "Discussion";
-                    display.innerText = "Let's discuss more general questions about " + (state.activeExam.topic || "this topic");
-                    nextBtn.innerText = "Start Part 3";
+                    display.innerText = "Let's discuss more general questions về chủ đề liên quan.";
+                    nextBtn.innerText = "Bắt đầu Part 3";
                 } else {
-                    narrator.innerText = `Question ${state.p3Index + 1} of ${state.activeExam.p3.length}`;
-                    display.innerText = state.activeExam.p3[state.p3Index];
-                    nextBtn.innerText = (state.p3Index === state.activeExam.p3.length - 1) ? "Finish Test" : "Next Question";
+                    const qText = state.activeExam.p3[state.p3Index];
+                    state.questionsAskedInCurrentPart.push(qText);
+                    narrator.innerText = `Câu hỏi ${state.p3Index + 1} / ${state.activeExam.p3.length}`;
+                    display.innerText = qText;
+                    nextBtn.innerText = (state.p3Index === state.activeExam.p3.length - 1) ? "Xem kết quả toàn bài" : "Câu tiếp theo";
                     startPartRecording();
                 }
             }
@@ -523,14 +491,12 @@
 
         async function nextStep() {
             if (state.p2SpeakingInterval) { clearInterval(state.p2SpeakingInterval); state.p2SpeakingInterval = null; }
-            
             if (state.showingIntermediateResult) {
                 state.showingIntermediateResult = false;
+                state.questionsAskedInCurrentPart = [];
                 document.getElementById('part-result-area').classList.add('hidden');
                 document.getElementById('main-test-area').classList.remove('hidden');
-                const playbackSection = document.getElementById('final-audio-preview');
-                if (playbackSection) playbackSection.classList.add('hidden');
-                
+                document.getElementById('final-audio-preview').classList.add('hidden');
                 if (state.mode === 'part') { showFinalReport(); return; }
                 if (state.currentPart === 1) { state.currentPart = 2; updateFlow(); }
                 else if (state.currentPart === 2) { state.currentPart = 3; updateFlow(); }
@@ -557,37 +523,27 @@
         function displayIntermediateScore(num) {
             state.showingIntermediateResult = true;
             document.getElementById('main-test-area').classList.add('hidden');
-            const playbackSection = document.getElementById('final-audio-preview');
-            if (playbackSection) playbackSection.classList.remove('hidden');
-            
+            document.getElementById('final-audio-preview').classList.remove('hidden');
             const resArea = document.getElementById('part-result-area');
             resArea.classList.remove('hidden');
-            
-            const partData = state.partResults[num] || { overall: 0, advice: "Lỗi dữ liệu", fc: {}, lr: {}, gra: {}, p: {}, improved_version: "" };
-            const scoreVal = parseFloat(partData.overall || 0);
-
+            const partData = state.partResults[num] || { overall: 0, advice: "Lỗi kết nối", fc: {}, lr: {}, gra: {}, p: {}, improved_version: "N/A" };
             document.getElementById('part-num-val').innerText = num;
-            document.getElementById('part-score-val').innerText = scoreVal.toFixed(1);
-            document.getElementById('part-feedback-brief').innerText = partData.advice || "No advice provided.";
-            document.getElementById('part-improved-version').innerText = partData.improved_version || "AI is generating a suggested response based on your content...";
-
+            document.getElementById('part-score-val').innerText = parseFloat(partData.overall).toFixed(1);
+            document.getElementById('part-feedback-brief').innerText = partData.advice;
+            document.getElementById('part-improved-version').innerText = partData.improved_version;
             const criteria = [
-                { name: "Fluency", data: partData.fc || {} }, { name: "Lexical", data: partData.lr || {} },
-                { name: "Grammar", data: partData.gra || {} }, { name: "Pronunciation", data: partData.p || {} }
+                { name: "Fluency", data: partData.fc }, { name: "Lexical", data: partData.lr },
+                { name: "Grammar", data: partData.gra }, { name: "Pronunciation", data: partData.p }
             ];
             document.getElementById('part-detailed-scores').innerHTML = criteria.map(c => `
                 <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
                     <div class="flex justify-between items-center mb-1">
                         <span class="text-xs font-bold text-indigo-700 uppercase">${c.name}</span>
-                        <span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Band ${(parseFloat(c.data.score || 0)).toFixed(1)}</span>
+                        <span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Band ${parseFloat(c.data.score || 0).toFixed(1)}</span>
                     </div>
-                    <p class="text-[11px] text-slate-600 leading-tight">${c.data.feedback || "N/A"}</p>
+                    <p class="text-[11px] text-slate-600 leading-tight">${c.data.feedback || "-"}</p>
                 </div>
             `).join('');
-            
-            const btn = document.getElementById('intermediate-next-btn');
-            if (state.mode === 'part' || (num === 3 && state.mode !== 'part')) btn.innerHTML = `Xem báo cáo tổng kết <i data-lucide="award" class="w-5 h-5 inline-block ml-1"></i>`;
-            else btn.innerHTML = `Tiếp tục sang Part ${num + 1} <i data-lucide="arrow-right" class="w-5 h-5 inline-block ml-1"></i>`;
             lucide.createIcons();
         }
 
@@ -600,12 +556,10 @@
                 time--; document.getElementById('p2-timer-countdown').innerText = `00:${time.toString().padStart(2, '0')}`;
                 if (time <= 0) {
                     clearInterval(interval);
-                    new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(()=>{});
                     window.speechSynthesis.cancel();
                     const promptMsg = new SpeechSynthesisUtterance("Time is up. Please start speaking now.");
                     promptMsg.lang = 'en-GB';
-                    const triggerP2Speaking = () => {
-                        if (state.p2Phase === 'speak') return;
+                    promptMsg.onend = () => {
                         state.p2Phase = 'speak'; updateFlow();
                         let speakTime = 120;
                         state.p2SpeakingInterval = setInterval(() => {
@@ -614,8 +568,6 @@
                             if (speakTime <= 0) { clearInterval(state.p2SpeakingInterval); speak("Time is up."); }
                         }, 1000);
                     };
-                    const safetyTimeout = setTimeout(triggerP2Speaking, 3500);
-                    promptMsg.onend = () => { clearTimeout(safetyTimeout); triggerP2Speaking(); };
                     window.speechSynthesis.speak(promptMsg);
                 }
             }, 1000);
@@ -623,83 +575,86 @@
 
         async function gradePart(num, blob) {
             const overlay = document.getElementById('grading-overlay'); overlay.classList.remove('hidden');
-            const defaultFailure = { overall: 0, fc: {score:0, feedback:"-"}, lr: {score:0, feedback:"-"}, gra: {score:0, feedback:"-"}, p: {score:0, feedback:"-"}, advice: "Chấm điểm thất bại.", improved_version: "" };
-
+            const defaultFailure = { overall: 0, fc: {score:0, feedback:"-"}, lr: {score:0, feedback:"-"}, gra: {score:0, feedback:"-"}, p: {score:0, feedback:"-"}, advice: "Chấm điểm thất bại. Vui lòng thử lại sau.", improved_version: "N/A" };
+            
             if (!blob || blob.size < 1000) { state.partResults[num] = defaultFailure; overlay.classList.add('hidden'); return; }
+            
             const base64 = await new Promise(r => {
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
 
-            const prompt = `Act as an expert IELTS Speaking Examiner. Evaluate the user's speech in Part ${num}. 
-            Provide scores for 4 criteria and advice in Vietnamese. 
-            Additionally, create an "improved_version" which is a high-scoring model answer (Target Band 7.5 - 8.0, CEFR B2-C1). 
-            It should keep the user's original ideas but refine the vocabulary and grammar to be more precise and natural. 
-            Crucially, avoid using excessively rare, obscure, or over-complicated "academic" words that sound unnatural in spoken English. 
-            Focus on effective collocations, idiomatic expressions at the C1 level, and clear, varied sentence structures.
-            Return JSON only: { "overall": number, "fc": {"score": number, "feedback": "chi tiết"}, "lr": {"score": number, "feedback": "chi tiết"}, "gra": {"score": number, "feedback": "chi tiết"}, "p": {"score": number, "feedback": "chi tiết"}, "advice": "lời khuyên", "improved_version": "string" }`;
+            const apiMimeType = "audio/webm"; 
+            
+            // CÂU LỆNH YÊU CẦU MODEL ANSWER DỰA TRÊN CÂU TRẢ LỜI CỦA HỌC SINH
+            const promptText = `Act as an expert IELTS Speaking Examiner. Evaluate user's speech in Part ${num}. 
+            The user was asked the following questions: ${state.questionsAskedInCurrentPart.join(" | ")}.
+            
+            Evaluate based on 4 IELTS criteria and provide specific feedback in Vietnamese. 
+            
+            Crucially, create an 'improved_version'. YOU MUST ANALYZE THE STUDENT'S ACTUAL CONTENT FROM THE AUDIO AND WRITE A "BETTER VERSION" OF THEIR OWN ANSWERS. 
+            - Use the student's original ideas, logic, and context.
+            - Elevate the vocabulary and grammar to a high-scoring Band 7.5 - 8.0 level (C1 level).
+            - Keep the tone natural and spoken, not like a written essay.
+            - If this part contains multiple questions, provide a model answer for EACH question asked based on what the student said.
+            - Label them "Model Ans 1:", "Model Ans 2:", etc.
+            
+            Return JSON: { "overall": number, "fc": {"score": number, "feedback": ""}, "lr": {"score": number, "feedback": ""}, "gra": {"score": number, "feedback": ""}, "p": {"score": number, "feedback": ""}, "advice": "", "improved_version": "" }`;
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
             try {
-                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: "Evaluate Part " + num }, { inlineData: { mimeType: blob.type, data: base64 } }] }], systemInstruction: { parts: [{ text: prompt }] }, generationConfig: { responseMimeType: "application/json" } }) });
-                if (!response.ok) throw new Error("API Failure");
+                const response = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            role: "user",
+                            parts: [
+                                { text: promptText },
+                                { inlineData: { mimeType: apiMimeType, data: base64 } }
+                            ]
+                        }],
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
                 const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                const result = JSON.parse(text);
-                state.partResults[num] = {
-                    overall: result.overall || 0,
-                    fc: result.fc || {score:0, feedback:""},
-                    lr: result.lr || {score:0, feedback:""},
-                    gra: result.gra || {score:0, feedback:""},
-                    p: result.p || {score:0, feedback:""},
-                    advice: result.advice || "",
-                    improved_version: result.improved_version || ""
-                };
-            } catch (e) { console.error(e); state.partResults[num] = defaultFailure; }
+                state.partResults[num] = JSON.parse(data.candidates[0].content.parts[0].text);
+            } catch (e) { 
+                console.error(e);
+                state.partResults[num] = defaultFailure; 
+            }
             overlay.classList.add('hidden');
         }
 
         function showFinalReport() {
             document.getElementById('main-test-area').classList.add('hidden');
             document.getElementById('part-result-area').classList.add('hidden');
-            const playbackSection = document.getElementById('final-audio-preview');
-            if (playbackSection) playbackSection.classList.add('hidden');
-            
             document.getElementById('feedback-area').classList.remove('hidden');
-
             const getAvg = (key) => {
-                const activeScores = Object.values(state.partResults).filter(p => p !== null).map(p => parseFloat(p[key]?.score || 0));
-                if (activeScores.length === 0) return 0;
-                return activeScores.reduce((a, b) => a + b, 0) / activeScores.length;
+                const active = Object.values(state.partResults).filter(p => p !== null).map(p => parseFloat(p[key]?.score || 0));
+                return active.length ? active.reduce((a, b) => a + b, 0) / active.length : 0;
             };
-
             const avgFC = getAvg('fc'), avgLR = getAvg('lr'), avgGRA = getAvg('gra'), avgP = getAvg('p');
             const roundedOverall = ieltsRounding((avgFC + avgLR + avgGRA + avgP) / 4);
-            
             document.getElementById('final-score').innerText = roundedOverall.toFixed(1);
             document.getElementById('criteria-scores-summary').innerHTML = [
                 { l: "Fluency", v: avgFC }, { l: "Lexical", v: avgLR }, { l: "Grammar", v: avgGRA }, { l: "Pronun", v: avgP }
-            ].map(c => `<div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-center"><div class="text-[10px] uppercase font-bold text-indigo-400 mb-1">${c.l}</div><div class="text-2xl font-black text-indigo-700">${c.v.toFixed(1)}</div></div>`).join('');
-
-            const relevantParts = Object.entries(state.partResults).filter(([num, res]) => res !== null);
-            document.getElementById('detailed-feedback-list').innerHTML = relevantParts.map(([num, res]) => `
-                <div class="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm mb-4">
-                    <h5 class="font-bold text-slate-800 mb-2">Part ${num} Details (Band: ${(parseFloat(res.overall || 0)).toFixed(1)})</h5>
-                    <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mb-4">
-                        <h6 class="text-[10px] font-bold text-indigo-600 uppercase mb-1">Improved Version:</h6>
-                        <p class="text-slate-700 text-xs italic leading-relaxed">${res.improved_version || "N/A"}</p>
-                    </div>
-                    <p class="text-slate-600 text-sm leading-relaxed">${res.advice || ""}</p>
+            ].map(c => `<div class="bg-indigo-50 p-4 rounded-2xl text-center shadow-sm"><div class="text-[10px] uppercase font-bold text-indigo-400 mb-1">${c.l}</div><div class="text-2xl font-black text-indigo-700">${c.v.toFixed(1)}</div></div>`).join('');
+            const relevant = Object.entries(state.partResults).filter(([n, r]) => r !== null);
+            document.getElementById('detailed-feedback-list').innerHTML = relevant.map(([n, r]) => `
+                <div class="bg-white border border-slate-100 p-6 rounded-2xl mb-4 shadow-sm">
+                    <h5 class="font-bold text-slate-800 mb-2">Part ${n} (Band: ${parseFloat(r.overall).toFixed(1)})</h5>
+                    <div class="bg-indigo-50 p-4 rounded-xl mb-4 text-xs italic leading-relaxed whitespace-pre-line border border-indigo-100">${r.improved_version}</div>
+                    <p class="text-slate-600 text-sm italic">${r.advice}</p>
                 </div>
             `).join('');
-
-            document.getElementById('final-advice').innerText = relevantParts.length > 0 ? relevantParts[relevantParts.length - 1][1].advice : "Completed.";
             lucide.createIcons();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function speak(text) { window.speechSynthesis.cancel(); if (!text) return; const msg = new SpeechSynthesisUtterance(text); msg.lang = 'en-GB'; window.speechSynthesis.speak(msg); }
         function repeatQuestion() { speak(document.getElementById('question-display').innerText); }
-        window.onload = () => { try { lucide.createIcons(); } catch(e) {} };
+        window.onload = () => lucide.createIcons();
     </script>
 </body>
 </html>
