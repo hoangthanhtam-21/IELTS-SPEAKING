@@ -205,6 +205,7 @@
     </div>
 
     <script>
+        // API Key rỗng theo quy định của hệ thống
         const apiKey = ""; 
 
         const QUESTION_BANK = {
@@ -366,7 +367,6 @@
                 try {
                     const response = await fetch(url, options);
                     if (response.ok) return response;
-                    if (response.status === 403) throw new Error("API Failure: 403");
                     if (i === retries) throw new Error(`API Failure: ${response.status}`);
                 } catch (err) {
                     if (i === retries) throw err;
@@ -397,7 +397,6 @@
                 }
                 draw();
 
-                // Dùng mimetype chuẩn để đảm bảo tính tương thích với Gemini
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
                 state.mediaRecorder = new MediaRecorder(stream, { mimeType });
                 state.audioChunks = [];
@@ -420,7 +419,6 @@
                     state.isRecording = false; clearInterval(state.timerId); return resolve(null);
                 }
                 state.mediaRecorder.onstop = () => {
-                    // Chuẩn hóa Blob trước khi gửi đi
                     const blob = new Blob(state.audioChunks, { type: state.mediaRecorder.mimeType });
                     state.isRecording = false;
                     clearInterval(state.timerId);
@@ -429,7 +427,6 @@
                     const playback = document.getElementById('audio-playback');
                     if (playback) playback.src = URL.createObjectURL(blob);
                     
-                    // Giải phóng micro ngay lập tức
                     state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
                     resolve(blob);
                 };
@@ -587,8 +584,8 @@
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
 
-            // Ép định dạng mimeType chuẩn để API Gemini chấp nhận (audio/webm hoặc audio/mp4)
-            const apiMimeType = blob.type.split(';')[0]; 
+            // Ép định dạng chuẩn cho API
+            const apiMimeType = "audio/webm"; 
             
             const promptText = `Act as an expert IELTS Speaking Examiner. Evaluate user's speech in Part ${num}. 
             The user was asked the following questions: ${state.questionsAskedInCurrentPart.join(" | ")}.
@@ -602,7 +599,7 @@
             - If this part contains multiple questions, provide a model answer for EACH question asked based on what the student said.
             - Label them "Model Ans 1:", "Model Ans 2:", etc.
             
-            Return JSON: { "overall": number, "fc": {"score": number, "feedback": ""}, "lr": {"score": number, "feedback": ""}, "gra": {"score": number, "feedback": ""}, "p": {"score": number, "feedback": ""}, "advice": "", "improved_version": "" }`;
+            Return JSON only: { "overall": number, "fc": {"score": number, "feedback": ""}, "lr": {"score": number, "feedback": ""}, "gra": {"score": number, "feedback": ""}, "p": {"score": number, "feedback": ""}, "advice": "", "improved_version": "" }`;
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
@@ -622,7 +619,12 @@
                     })
                 });
                 const data = await response.json();
-                state.partResults[num] = JSON.parse(data.candidates[0].content.parts[0].text);
+                let resultText = data.candidates[0].content.parts[0].text;
+                
+                // Loại bỏ Markdown nếu AI tự ý thêm vào
+                resultText = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
+                
+                state.partResults[num] = JSON.parse(resultText);
             } catch (e) { 
                 console.error(e);
                 state.partResults[num] = defaultFailure; 
