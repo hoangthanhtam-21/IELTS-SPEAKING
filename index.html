@@ -380,7 +380,7 @@
             if (state.isRecording) return;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const audioCtx = new AudioContext();
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const analyser = audioCtx.createAnalyser();
                 const source = audioCtx.createMediaStreamSource(stream);
                 source.connect(analyser);
@@ -397,6 +397,7 @@
                 }
                 draw();
 
+                // Dùng mimetype chuẩn để đảm bảo tính tương thích với Gemini
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
                 state.mediaRecorder = new MediaRecorder(stream, { mimeType });
                 state.audioChunks = [];
@@ -419,6 +420,7 @@
                     state.isRecording = false; clearInterval(state.timerId); return resolve(null);
                 }
                 state.mediaRecorder.onstop = () => {
+                    // Chuẩn hóa Blob trước khi gửi đi
                     const blob = new Blob(state.audioChunks, { type: state.mediaRecorder.mimeType });
                     state.isRecording = false;
                     clearInterval(state.timerId);
@@ -426,6 +428,8 @@
                     document.getElementById('recording-section').classList.add('hidden');
                     const playback = document.getElementById('audio-playback');
                     if (playback) playback.src = URL.createObjectURL(blob);
+                    
+                    // Giải phóng micro ngay lập tức
                     state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
                     resolve(blob);
                 };
@@ -583,9 +587,9 @@
                 const reader = new FileReader(); reader.onloadend = () => r(reader.result.split(',')[1]); reader.readAsDataURL(blob);
             });
 
-            const apiMimeType = "audio/webm"; 
+            // Ép định dạng mimeType chuẩn để API Gemini chấp nhận (audio/webm hoặc audio/mp4)
+            const apiMimeType = blob.type.split(';')[0]; 
             
-            // CÂU LỆNH YÊU CẦU MODEL ANSWER DỰA TRÊN CÂU TRẢ LỜI CỦA HỌC SINH
             const promptText = `Act as an expert IELTS Speaking Examiner. Evaluate user's speech in Part ${num}. 
             The user was asked the following questions: ${state.questionsAskedInCurrentPart.join(" | ")}.
             
