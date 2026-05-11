@@ -18,6 +18,8 @@
         .btn-primary:hover:not(:disabled) { background: #34495e; transform: translateY(-2px); }
         .btn-action { background: var(--success); color: white; }
         .btn-action:hover:not(:disabled) { background: #219653; transform: translateY(-2px); }
+        .btn-secondary { background: #f39c12; color: white; }
+        .btn-secondary:hover:not(:disabled) { background: #d68910; transform: translateY(-2px); }
         .btn-back { background: #bdc3c7; color: var(--primary); margin-bottom: 20px; display: inline-block; }
         .test-area, .feedback-area { display: none; }
         .timer { font-size: 3rem; text-align: center; color: var(--accent); margin: 15px 0; font-family: monospace; font-weight: bold; }
@@ -39,7 +41,16 @@
         .overall-band { grid-column: 1 / -1; background: var(--primary); color: white; border-bottom: none; }
         .overall-band h3 { color: white; }
         .overall-band .band { color: #f1c40f; }
-        .feedback-text { background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 5px solid #ffc107; line-height: 1.6; white-space: pre-wrap;}
+        
+        /* Detailed Feedback Section Styles */
+        .feedback-section { background: white; padding: 20px; margin-bottom: 15px; border-left: 5px solid var(--primary); border-radius: 0 8px 8px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .feedback-section h4 { margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px; font-size: 1.1rem; }
+        .feedback-section p { margin-bottom: 0; line-height: 1.6; white-space: pre-wrap; }
+        
+        .improved-section { border-left-color: var(--success); background: #eafaf1; }
+        .improved-section h4 { color: var(--success); }
+        
+        .transcript-review { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; }
         
         .loading-spinner { text-align: center; padding: 40px; }
         .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; margin: 0 auto 15px; }
@@ -92,8 +103,9 @@
             <div id="live-transcript" class="transcript-box">Your speech will appear here...</div>
         </div>
 
-        <div style="text-align: center; margin-top: 20px;">
+        <div style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
             <button id="action-btn" class="btn-action" onclick="handleAction()">START SESSION</button>
+            <button id="replay-btn" class="btn-secondary hidden" onclick="replayQuestion()">Listen Again 🔈</button>
             <button id="next-q-btn" class="btn-primary hidden" onclick="nextQuestion()">Next Question →</button>
         </div>
     </div>
@@ -104,7 +116,7 @@
         
         <div id="loading-feedback" class="loading-spinner">
             <div class="spinner"></div>
-            <p>The examiner is analyzing your transcript and grading your performance...</p>
+            <p>The examiner is analyzing your transcript and grading your performance in detail...</p>
         </div>
 
         <div id="feedback-result" class="hidden">
@@ -116,8 +128,32 @@
                 <div class="score-item overall-band"><h3>OVERALL BAND</h3><div class="band" id="score-overall">-</div></div>
             </div>
             
+            <div class="transcript-review" id="transcript-review">
+                <!-- User transcript will be injected here -->
+            </div>
+
             <h3>Detailed Feedback</h3>
-            <div id="feedback-text" class="feedback-text"></div>
+            <div class="feedback-section">
+                <h4>Fluency & Coherence</h4>
+                <p id="fb-fluency"></p>
+            </div>
+            <div class="feedback-section">
+                <h4>Lexical Resource</h4>
+                <p id="fb-lexical"></p>
+            </div>
+            <div class="feedback-section">
+                <h4>Grammatical Range & Accuracy</h4>
+                <p id="fb-grammar"></p>
+            </div>
+            <div class="feedback-section">
+                <h4>Pronunciation</h4>
+                <p id="fb-pronunciation"></p>
+            </div>
+            
+            <div class="feedback-section improved-section">
+                <h4>Suggested Improved Versions</h4>
+                <p id="fb-improved"></p>
+            </div>
             
             <div style="text-align: center; margin-top: 30px;">
                 <button id="continue-test-btn" class="btn-action hidden" onclick="continueFullTest()">Continue to Next Part →</button>
@@ -280,6 +316,7 @@
             document.getElementById('question-container').classList.add('hidden');
             document.getElementById('transcript-container').classList.add('hidden');
             document.getElementById('next-q-btn').classList.add('hidden');
+            document.getElementById('replay-btn').classList.add('hidden');
             
             document.getElementById('status-msg').innerHTML = "🔈 Listen carefully to the examiner...";
             
@@ -289,10 +326,18 @@
         }
     }
 
+    function replayQuestion() {
+        if(questionsPool[currentQIndex]) {
+            // Speak the question again without restarting the phase or timer
+            speak(questionsPool[currentQIndex]); 
+        }
+    }
+
     function startRecordingPhase() {
         document.getElementById('status-msg').innerHTML = "<span class='recording-indicator'></span> Recording... Speak now!";
         document.getElementById('transcript-container').classList.remove('hidden');
         document.getElementById('next-q-btn').classList.remove('hidden');
+        document.getElementById('replay-btn').classList.remove('hidden'); // Show Listen Again button
         
         currentFinalTranscript = '';
         currentInterimTranscript = '';
@@ -312,6 +357,8 @@
         clearInterval(timerInterval);
         if(recognition) recognition.stop();
         
+        document.getElementById('replay-btn').classList.add('hidden');
+
         // Save transcript
         const ans = currentFinalTranscript.trim() || "(No audible response recorded)";
         sessionTranscripts.push({ question: questionsPool[currentQIndex], answer: ans });
@@ -375,8 +422,13 @@
         synth.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         if(ukVoice) utter.voice = ukVoice;
-        utter.rate = 0.9; // Slightly slower for clarity
-        utter.onend = callback;
+        
+        // Changed reading rate from 0.9 to 0.75 for a slower, clearer pronunciation
+        utter.rate = 0.75; 
+        
+        if (callback) {
+            utter.onend = callback;
+        }
         synth.speak(utter);
     }
 
@@ -435,11 +487,19 @@
 
         // Prepare Prompt
         let conversationText = sessionTranscripts.map((item, i) => 
-            `Q${i+1}: ${item.question}\nStudent's Answer: ${item.answer}`
+            `Question ${i+1}: ${item.question}\nStudent's Answer: ${item.answer}`
         ).join("\n\n");
 
-        const systemPrompt = "You are a strict, professional IELTS Speaking Examiner. Evaluate the provided transcript of a student's answers. Assess strictly based on the 4 official IELTS criteria. Output MUST be valid JSON.";
-        const userPrompt = `Please evaluate this IELTS Part ${currentPart} performance:\n\n${conversationText}\n\nProvide scores from 0.0 to 9.0 (in 0.5 increments). Be highly critical of grammar, filler words, vocabulary usage, and short answers. Keep 'feedback' clear and professional (max 150 words).`;
+        const systemPrompt = `You are a strict, professional IELTS Speaking Examiner. 
+        Evaluate the provided transcript of a student's answers based STRICTLY on the 4 official IELTS criteria:
+        1. Fluency and Coherence
+        2. Lexical Resource
+        3. Grammatical Range and Accuracy
+        4. Pronunciation (Estimate based on text flow, spelling anomalies in recognition, and structure).
+        
+        Output MUST be valid JSON matching the requested schema. Provide DETAILED, SPECIFIC feedback for each criterion (2-3 sentences each) mentioning exact words or mistakes from the transcript. Finally, provide 'improved_versions' containing a Band 8.0+ natural reformulation for each answer the student provided.`;
+
+        const userPrompt = `Please evaluate this IELTS Part ${currentPart} performance:\n\n${conversationText}\n\nProvide scores from 0.0 to 9.0 (in 0.5 increments). Be highly critical of grammar, filler words, vocabulary usage, and short answers. Give specific examples from the transcript in your feedback.`;
 
         const payload = {
             contents: [{ parts: [{ text: userPrompt }] }],
@@ -454,7 +514,11 @@
                         grammar: { type: "NUMBER" },
                         pronunciation: { type: "NUMBER" },
                         overall: { type: "NUMBER" },
-                        feedback: { type: "STRING" }
+                        fluency_feedback: { type: "STRING" },
+                        lexical_feedback: { type: "STRING" },
+                        grammar_feedback: { type: "STRING" },
+                        pronunciation_feedback: { type: "STRING" },
+                        improved_versions: { type: "STRING" }
                     }
                 }
             }
@@ -465,7 +529,7 @@
             const textResponse = result.candidates[0].content.parts[0].text;
             const data = JSON.parse(textResponse);
             
-            renderFeedback(data.fluency, data.lexical, data.grammar, data.pronunciation, data.overall, data.feedback);
+            renderFeedback(data);
         } catch (error) {
             console.error("AI Evaluation failed:", error);
             showMockFeedback(); // Fallback on failure
@@ -474,26 +538,40 @@
 
     function showMockFeedback() {
         // Fallback if AI fails or no transcript
-        renderFeedback(5.5, 6.0, 5.0, 5.5, 5.5, "The examiner noted your answers. To get a higher score, try to expand your answers with more complex sentence structures and advanced vocabulary. Reduce hesitations and filler words.");
+        const mockData = {
+            fluency: 5.5, lexical: 6.0, grammar: 5.0, pronunciation: 5.5, overall: 5.5,
+            fluency_feedback: "You had noticeable hesitations and pauses while searching for words. Try to use discourse markers like 'Well', 'To be honest', or 'Actually' to buy time naturally instead of staying silent.",
+            lexical_feedback: "Your vocabulary is adequate for familiar topics but lacks less common/idiomatic expressions. You repeated certain basic words. Try to incorporate better collocations.",
+            grammar_feedback: "You relied mostly on simple sentence structures. There were noticeable errors in subject-verb agreement and tense consistency. Practice using complex clauses (e.g., relative clauses, conditionals).",
+            pronunciation_feedback: "Based on the transcript, there might be occasional mispronunciations or flat intonation that caused the recognition system to miss a few words. Focus on word stress and linking words.",
+            improved_versions: "Q1: To be honest, I live in a fairly spacious apartment right in the heart of the city. What I love most about it is the convenience..."
+        };
+        renderFeedback(mockData);
     }
 
-    function renderFeedback(f, l, g, p, o, text) {
+    function renderFeedback(data) {
         document.getElementById('loading-feedback').classList.add('hidden');
         document.getElementById('feedback-result').classList.remove('hidden');
         
-        document.getElementById('score-fluency').innerText = f.toFixed(1);
-        document.getElementById('score-lexical').innerText = l.toFixed(1);
-        document.getElementById('score-grammar').innerText = g.toFixed(1);
-        document.getElementById('score-pronunciation').innerText = p.toFixed(1);
-        document.getElementById('score-overall').innerText = o.toFixed(1);
+        document.getElementById('score-fluency').innerText = data.fluency.toFixed(1);
+        document.getElementById('score-lexical').innerText = data.lexical.toFixed(1);
+        document.getElementById('score-grammar').innerText = data.grammar.toFixed(1);
+        document.getElementById('score-pronunciation').innerText = data.pronunciation.toFixed(1);
+        document.getElementById('score-overall').innerText = data.overall.toFixed(1);
+        
+        // Render detailed feedback
+        document.getElementById('fb-fluency').innerText = data.fluency_feedback;
+        document.getElementById('fb-lexical').innerText = data.lexical_feedback;
+        document.getElementById('fb-grammar').innerText = data.grammar_feedback;
+        document.getElementById('fb-pronunciation').innerText = data.pronunciation_feedback;
+        document.getElementById('fb-improved').innerText = data.improved_versions;
         
         // Append transcript to feedback for review
-        let transcriptHTML = `<strong>Review your answers:</strong><br><br>`;
+        let transcriptHTML = `<strong>Your Transcript Review:</strong><br><br>`;
         sessionTranscripts.forEach((t, i) => {
             transcriptHTML += `<em>Q${i+1}: ${t.question}</em><br><span style="color:#555">A: ${t.answer}</span><br><br>`;
         });
-        
-        document.getElementById('feedback-text').innerHTML = `${text}<br><br><hr><br>${transcriptHTML}`;
+        document.getElementById('transcript-review').innerHTML = transcriptHTML;
 
         if (currentMode === 'fulltest' && currentPart < 3) {
             document.getElementById('continue-test-btn').classList.remove('hidden');
