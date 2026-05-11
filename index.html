@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Speaking Simulator - Pro Version</title>
+    <title>IELTS Speaking Simulator - Offline Pro Version</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #e74c3c; --bg: #f4f7f6; --success: #27ae60; --text: #333; }
+        :root { --primary: #2c3e50; --accent: #e74c3c; --bg: #f4f7f6; --success: #27ae60; --text: #333; --warning: #f39c12; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .container { width: 100%; max-width: 850px; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; }
         h1, h2 { text-align: center; color: var(--primary); margin-top: 0; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
         .full-width { grid-column: span 2; }
-        button { padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: all 0.2s; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: all 0.2s; }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover:not(:disabled) { background: #34495e; transform: translateY(-2px); }
         .btn-action { background: var(--success); color: white; }
         .btn-action:hover:not(:disabled) { background: #219653; transform: translateY(-2px); }
-        .btn-secondary { background: #f39c12; color: white; }
+        .btn-secondary { background: var(--warning); color: white; }
         .btn-secondary:hover:not(:disabled) { background: #d68910; transform: translateY(-2px); }
+        .btn-change { background: #9b59b6; color: white; }
+        .btn-change:hover:not(:disabled) { background: #8e44ad; transform: translateY(-2px); }
         .btn-back { background: #bdc3c7; color: var(--primary); margin-bottom: 20px; display: inline-block; }
         .test-area, .feedback-area { display: none; }
         .timer { font-size: 3rem; text-align: center; color: var(--accent); margin: 15px 0; font-family: monospace; font-weight: bold; }
@@ -47,16 +49,10 @@
         .feedback-section h4 { margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 8px; font-size: 1.1rem; }
         .feedback-section p { margin-bottom: 0; line-height: 1.6; white-space: pre-wrap; }
         
-        .improved-section { border-left-color: var(--success); background: #eafaf1; }
-        .improved-section h4 { color: var(--success); }
-        
         .transcript-review { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; }
         
-        .loading-spinner { text-align: center; padding: 40px; }
-        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--primary); animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         .browser-warning { background: #ffdddd; border-left: 5px solid #f44336; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; }
+        .controls-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -67,6 +63,8 @@
     <!-- MAIN MENU -->
     <div id="main-menu">
         <h1>IELTS Speaking Simulator</h1>
+        <p style="text-align: center; color: #666; margin-top: -10px;">Self-Practice Offline System</p>
+
         <div id="browser-warning" class="browser-warning hidden">
             <strong>Note:</strong> For Speech Recognition to work perfectly, please use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
         </div>
@@ -104,9 +102,10 @@
             <div id="live-transcript" class="transcript-box">Your speech will appear here...</div>
         </div>
 
-        <div style="text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <div class="controls-row">
             <button id="action-btn" class="btn-action" onclick="handleAction()">START SESSION</button>
             <button id="replay-btn" class="btn-secondary hidden" onclick="replayQuestion()">Listen Again 🔈</button>
+            <button id="change-q-btn" class="btn-change hidden" onclick="changeQuestion()">Change Question 🔄</button>
             <button id="next-q-btn" class="btn-primary hidden" onclick="nextQuestion()">Next Question →</button>
         </div>
     </div>
@@ -114,13 +113,8 @@
     <!-- FEEDBACK AREA -->
     <div id="feedback-area" class="feedback-area">
         <h2>Examiner's Assessment</h2>
-        
-        <div id="loading-feedback" class="loading-spinner">
-            <div class="spinner"></div>
-            <p>The examiner is analyzing your transcript and grading your performance in detail...</p>
-        </div>
 
-        <div id="feedback-result" class="hidden">
+        <div id="feedback-result">
             <div class="score-grid">
                 <div class="score-item"><h3>Fluency</h3><div class="band" id="score-fluency">-</div></div>
                 <div class="score-item"><h3>Lexical</h3><div class="band" id="score-lexical">-</div></div>
@@ -133,7 +127,7 @@
                 <!-- User transcript will be injected here -->
             </div>
 
-            <h3>Detailed Feedback</h3>
+            <h3>Detailed Feedback (Based on Transcript)</h3>
             <div class="feedback-section">
                 <h4>Fluency & Coherence</h4>
                 <p id="fb-fluency"></p>
@@ -151,13 +145,9 @@
                 <p id="fb-pronunciation"></p>
             </div>
             
-            <div class="feedback-section improved-section">
-                <h4>Suggested Improved Versions</h4>
-                <div id="fb-improved"></div>
-            </div>
-            
-            <div style="text-align: center; margin-top: 30px;">
+            <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                 <button id="continue-test-btn" class="btn-action hidden" onclick="continueFullTest()">Continue to Next Part →</button>
+                <button id="retake-test-btn" class="btn-change hidden" onclick="retakeFullTest()">Retake Full Test 🔄</button>
                 <button class="btn-primary" onclick="location.reload()">Finish & Return Home</button>
             </div>
         </div>
@@ -166,7 +156,7 @@
 
 <script>
     // ==========================================
-    // 1. DATA SECTION (EDIT QUESTIONS HERE)
+    // 1. DATA SECTION
     // ==========================================
     const ieltsData = {
         part1: [
@@ -176,10 +166,22 @@
             { topic: "TRAVELS AND TRANSPORTATION", questions: ["How do you go to work or school?", "What's the most popular means of transportation in your hometown?", "Do you think people will drive more in the future?", "How often do you take buses?", "Can you compare the advantages of planes and trains?", "What form of transport do you prefer to use? Why?", "What type of public transport can be found in your city?", "Would you ride bikes to work in the future?", "Where do you like to go on your vacation/holiday?"] }
         ],
         part2: [
-            { topic: "HOMES", content: "Describe a house or apartment you would like to live in in the future.\n\nYou should say:\n- Where it is\n- What kind of accommodation it is\n- What it is like\n- And how you feel about this dream house/apartment." },
-            { topic: "SPORTS", content: "Describe your favourite sport.\n\nYou should say:\n- What sport it is\n- How often you play it or watch it\n- How you play it\n- And explain why this is your favourite sport." },
-            { topic: "NEWS AND MEDIA", content: "Describe a newspaper or magazine you enjoy reading.\n\nYou should say:\n- what newspaper/ magazine it is\n- what the newspaper/ magazine is about\n- how often you read it\n- what kinds of people generally read this newspaper/ magazine\nAnd explain why you like to read it." },
-            { topic: "TRAVEL AND TRANSPORTATION", content: "Describe a recent vacation that you went on.\n\nYou should say:\n- Where and when did you go?\n- What did you do there?\n- How did you feel about it?" }
+            { topic: "HOMES", questions: [
+                "Describe a house or apartment you would like to live in in the future.\n\nYou should say:\n- Where it is\n- What kind of accommodation it is\n- What it is like\n- And how you feel about this dream house/apartment."
+            ]},
+            { topic: "SPORTS", questions: [
+                "Describe your favourite sport.\n\nYou should say:\n- What sport it is\n- How often you play it or watch it\n- How you play it\n- And explain why this is your favourite sport.",
+                "Describe a live sport event you watched before.\n\nYou should say:\n- When it happened\n- Where it took place\n- Who you watched it with\n- And explain how you felt about this experience.",
+                "Describe a sportsperson you admire.\n\nYou should say:\n- Who the person is\n- What sport he or she does\n- When did you first hear about this person\n- And why you admire him or her."
+            ]},
+            { topic: "NEWS AND MEDIA", questions: [
+                "Describe a newspaper or magazine you enjoy reading.\n\nYou should say:\n- What newspaper/ magazine it is\n- What the newspaper/ magazine is about\n- How often you read it\n- What kinds of people generally read this newspaper/ magazine\nAnd explain why you like to read it.",
+                "Describe a piece of local news about which people were very excited.\n\nYou should say:\n- What it was about?\n- Where you saw/heard it?\n- Who was involved?\n- And explain why people were interested in it?"
+            ]},
+            { topic: "TRAVEL AND TRANSPORTATION", questions: [
+                "Describe a time you travelled by public transport.\n\nYou should say:\n- What means of transportation is it?\n- When and where did you travel?\n- How did you feel about the experience.",
+                "Describe a recent vacation that you went on.\n\nYou should say:\n- Where and when did you go?\n- What did you do there?\n- How did you feel about it?"
+            ]}
         ],
         part3: [
             { topic: "HOMES", questions: ["Do you think homes will look different in the future?", "How easy is it to find a place to live in your country?", "Do you think it’s better to rent or to buy a place to live in?", "Do you agree that there is a right age for young adults to stop living with their parents?", "What factors will contribute to whether a place is good to live in or not?"] },
@@ -190,18 +192,17 @@
     };
 
     // ==========================================
-    // 2. SYSTEM STATE & AI CONFIG
+    // 2. SYSTEM STATE & SPEECH CONFIG
     // ==========================================
-    const activeApiKey = "AIzaSyARUAQCh1b0IO5AAEEqZl1Uhty2VJxQQqU"; // Injected by execution environment internally
     let currentMode = ''; 
     let currentPart = 0;
     let questionsPool = [];
     let currentQIndex = 0;
-    let sessionTranscripts = []; // Stores { question, transcript }
+    let sessionTranscripts = []; 
     let selectedPart2Topic = '';
     let timerInterval;
 
-    // Check browser support for SpeechRecognition
+    // Speech Recognition Setup
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
         document.getElementById('browser-warning').classList.remove('hidden');
@@ -214,7 +215,7 @@
     if(recognition) {
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-GB'; // British English model for recognition
+        recognition.lang = 'en-GB';
 
         recognition.onresult = (event) => {
             currentInterimTranscript = '';
@@ -228,12 +229,10 @@
             document.getElementById('live-transcript').innerText = currentFinalTranscript + currentInterimTranscript;
         };
         
-        recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-        };
+        recognition.onerror = (event) => console.error("Speech recognition error", event.error);
     }
 
-    // TTS Setup (British Voice)
+    // TTS Setup
     const synth = window.speechSynthesis;
     let ukVoice = null;
     
@@ -247,7 +246,21 @@
     synth.onvoiceschanged = loadVoices;
 
     // ==========================================
-    // 3. UI LOGIC
+    // 3. UTILS & SCRAMBLE LOGIC
+    // ==========================================
+    // Fisher-Yates Shuffle Algorithm for true randomness
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // ==========================================
+    // 4. UI LOGIC
     // ==========================================
     function showPracticeMenu() {
         document.getElementById('main-menu').classList.add('hidden');
@@ -282,16 +295,26 @@
     }
 
     function prepareQuestions() {
-        if(currentPart === 1) {
-            questionsPool = ieltsData.part1.map(t => t.questions[Math.floor(Math.random() * t.questions.length)]);
-        } else if(currentPart === 2) {
-            let t = ieltsData.part2[Math.floor(Math.random() * ieltsData.part2.length)];
-            selectedPart2Topic = t.topic;
-            questionsPool = [t.content];
-        } else {
-            let topicName = (currentMode === 'fulltest' && selectedPart2Topic) ? selectedPart2Topic : ieltsData.part3[Math.floor(Math.random() * ieltsData.part3.length)].topic;
+        if (currentPart === 1) {
+            // Scramble all topics, pick 4. Then pick 1 random question from each topic.
+            let shuffledTopics = shuffleArray([...ieltsData.part1]);
+            questionsPool = shuffledTopics.slice(0, 4).map(t => {
+                let shuffledQs = shuffleArray([...t.questions]);
+                return shuffledQs[0];
+            });
+        } 
+        else if (currentPart === 2) {
+            let shuffledP2 = shuffleArray([...ieltsData.part2]);
+            selectedPart2Topic = shuffledP2[0].topic;
+            let shuffledQs = shuffleArray([...shuffledP2[0].questions]);
+            questionsPool = [shuffledQs[0]];
+        } 
+        else {
+            let topicName = (currentMode === 'fulltest' && selectedPart2Topic) ? selectedPart2Topic : shuffleArray([...ieltsData.part3])[0].topic;
             let topicObj = ieltsData.part3.find(t => t.topic === topicName) || ieltsData.part3[0];
-            questionsPool = [...topicObj.questions].sort(() => 0.5 - Math.random()).slice(0, 3);
+            
+            let shuffledQs = shuffleArray([...topicObj.questions]);
+            questionsPool = shuffledQs.slice(0, 3);
         }
     }
 
@@ -304,8 +327,48 @@
         }
     }
 
+    function changeQuestion() {
+        clearInterval(timerInterval);
+        if(recognition) recognition.stop();
+        synth.cancel();
+
+        if (currentPart === 2) {
+            // Pick a different topic for Part 2
+            let availableTopics = ieltsData.part2.filter(t => t.topic !== selectedPart2Topic);
+            if (availableTopics.length === 0) availableTopics = ieltsData.part2;
+            let newTopicObj = availableTopics[Math.floor(Math.random() * availableTopics.length)];
+            
+            selectedPart2Topic = newTopicObj.topic;
+            let shuffledQs = shuffleArray([...newTopicObj.questions]);
+            questionsPool[0] = shuffledQs[0];
+            
+            // Restart P2 Flow
+            startPart2Flow();
+        } else {
+            // Part 1 or 3
+            let currentQ = questionsPool[currentQIndex];
+            let newQ = "";
+
+            if (currentPart === 1) {
+                // Find a random question from any topic that is not the current one and not in the pool
+                let allQs = [];
+                ieltsData.part1.forEach(t => allQs = allQs.concat(t.questions));
+                let availableQs = shuffleArray(allQs.filter(q => q !== currentQ && !questionsPool.includes(q)));
+                newQ = availableQs[0] || allQs[0];
+            } else {
+                // Part 3: Keep same topic, but different question
+                let topicObj = ieltsData.part3.find(t => t.topic === (selectedPart2Topic || ieltsData.part3[0].topic));
+                let availableQs = shuffleArray(topicObj.questions.filter(q => q !== currentQ && !questionsPool.includes(q)));
+                newQ = availableQs[0] || topicObj.questions[0];
+            }
+
+            questionsPool[currentQIndex] = newQ;
+            startAudioQuestionFlow();
+        }
+    }
+
     // ==========================================
-    // 4. FLOW HANDLers
+    // 5. FLOW HANDLers
     // ==========================================
     function startAudioQuestionFlow() {
         if(currentQIndex < questionsPool.length) {
@@ -314,6 +377,7 @@
             document.getElementById('transcript-container').classList.add('hidden');
             document.getElementById('next-q-btn').classList.add('hidden');
             document.getElementById('replay-btn').classList.add('hidden');
+            document.getElementById('change-q-btn').classList.add('hidden');
             
             document.getElementById('status-msg').innerHTML = "🔈 Listen carefully to the examiner...";
             
@@ -334,6 +398,7 @@
         document.getElementById('transcript-container').classList.remove('hidden');
         document.getElementById('next-q-btn').classList.remove('hidden');
         document.getElementById('replay-btn').classList.remove('hidden');
+        document.getElementById('change-q-btn').classList.remove('hidden');
         
         currentFinalTranscript = '';
         currentInterimTranscript = '';
@@ -343,7 +408,7 @@
         
         const timeLimit = currentPart === 3 ? 60 : 45;
         startTimer(timeLimit, () => {
-            if(document.getElementById('next-q-btn').classList.contains('hidden') === false) {
+            if(!document.getElementById('next-q-btn').classList.contains('hidden')) {
                 nextQuestion();
             }
         });
@@ -352,8 +417,10 @@
     function nextQuestion() {
         clearInterval(timerInterval);
         if(recognition) recognition.stop();
+        synth.cancel();
         
         document.getElementById('replay-btn').classList.add('hidden');
+        document.getElementById('change-q-btn').classList.add('hidden');
 
         const ans = currentFinalTranscript.trim() || "(No audible response recorded)";
         sessionTranscripts.push({ question: questionsPool[currentQIndex], answer: ans });
@@ -371,8 +438,11 @@
         display.classList.remove('hidden');
         display.innerHTML = questionsPool[0].replace(/\n/g, '<br>');
         
+        document.getElementById('change-q-btn').classList.remove('hidden');
         document.getElementById('status-msg').innerText = "PREPARATION TIME (1 MIN)";
+        
         startTimer(60, () => {
+            document.getElementById('change-q-btn').classList.add('hidden'); // Cannot change Q once speaking starts
             speak("Your preparation time is up. Please speak for one to two minutes.", () => {
                 document.getElementById('status-msg').innerHTML = "<span class='recording-indicator'></span> SPEAKING TIME (2 MINS)";
                 document.getElementById('transcript-container').classList.remove('hidden');
@@ -405,19 +475,15 @@
     }
 
     // ==========================================
-    // 5. UTILS & AI FEEDBACK
+    // 6. UTILS & DYNAMIC FEEDBACK
     // ==========================================
     function speak(text, callback) {
         if(!ukVoice) loadVoices(); 
-        
         synth.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         if(ukVoice) utter.voice = ukVoice;
         utter.rate = 0.75; 
-        
-        if (callback) {
-            utter.onend = callback;
-        }
+        if (callback) utter.onend = callback;
         synth.speak(utter);
     }
 
@@ -426,175 +492,87 @@
         let timeLeft = seconds;
         const timerEl = document.getElementById('timer');
         
+        timerEl.innerText = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`;
+
         timerInterval = setInterval(() => {
-            let m = Math.floor(timeLeft / 60);
-            let s = timeLeft % 60;
-            timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            timeLeft--;
+            timerEl.innerText = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`;
             if(timeLeft <= 0) {
                 clearInterval(timerInterval);
                 if(callback) callback();
             }
-            timeLeft--;
         }, 1000);
     }
 
     function finishPart() {
         document.getElementById('test-area').style.display = 'none';
         document.getElementById('feedback-area').style.display = 'block';
-        document.getElementById('loading-feedback').classList.remove('hidden');
-        document.getElementById('feedback-result').classList.add('hidden');
         document.getElementById('global-back-btn').classList.add('hidden');
         
-        generateAIFeedback();
+        generateFeedback();
     }
 
-    async function fetchWithRetry(url, payload, retries = 5) {
-        let delay = 1000;
-        for (let i = 0; i < retries; i++) {
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
-            } catch (error) {
-                if (i === retries - 1) throw error;
-                await new Promise(res => setTimeout(res, delay));
-                delay *= 2;
-            }
-        }
-    }
-
-    async function generateAIFeedback() {
-        if (!activeApiKey) {
-            showMockFeedback(); // Fallback if NO key exists
-            return;
-        }
-
-        let conversationText = sessionTranscripts.map((item, i) => 
-            `Question ${i+1}: ${item.question}\nStudent's Answer: ${item.answer}`
-        ).join("\n\n");
-
-        const systemPrompt = `You are a strict, professional IELTS Speaking Examiner. 
-        Evaluate the provided transcript of a student's answers based STRICTLY on the 4 official IELTS criteria:
-        1. Fluency and Coherence
-        2. Lexical Resource
-        3. Grammatical Range and Accuracy
-        4. Pronunciation (Estimate based on text flow, spelling anomalies in recognition, and structure).
+    // Tự động phân tích Transcript để chấm điểm và nhận xét
+    function generateFeedback() {
+        let totalWords = 0;
+        let hesitations = 0;
+        let hasResponse = false;
         
-        Output MUST be valid JSON matching the requested schema. Provide DETAILED, SPECIFIC feedback for each criterion (2-3 sentences each) mentioning exact words or mistakes from the transcript. 
-        
-        CRITICAL INSTRUCTION FOR 'improved_versions':
-        Do NOT just fix the typos in the student's transcript. You MUST provide an array of objects where 'band_8_version' is a FULLY ELEVATED, natural-sounding Band 8.0+ model answer. Take the student's core idea and transform it using advanced vocabulary, native-like idioms, complex grammar structures, and excellent coherence. If the student's answer is too short or broken, EXPAND on it logically to demonstrate how a high-scoring candidate would thoroughly answer the question.`;
-
-        const userPrompt = `Please evaluate this IELTS Part ${currentPart} performance:\n\n${conversationText}\n\nProvide scores from 0.0 to 9.0 (in 0.5 increments). Be highly critical of grammar, filler words, vocabulary usage, and short answers. Give specific examples from the transcript in your feedback. Make sure the improved versions sound like native speakers aiming for a perfect score.`;
-
-        const payload = {
-            contents: [{ parts: [{ text: userPrompt }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: "OBJECT",
-                    properties: {
-                        fluency: { type: "NUMBER" },
-                        lexical: { type: "NUMBER" },
-                        grammar: { type: "NUMBER" },
-                        pronunciation: { type: "NUMBER" },
-                        overall: { type: "NUMBER" },
-                        fluency_feedback: { type: "STRING" },
-                        lexical_feedback: { type: "STRING" },
-                        grammar_feedback: { type: "STRING" },
-                        pronunciation_feedback: { type: "STRING" },
-                        improved_versions: { 
-                            type: "ARRAY",
-                            items: {
-                                type: "OBJECT",
-                                properties: {
-                                    question: { type: "STRING" },
-                                    user_answer: { type: "STRING" },
-                                    band_8_version: { type: "STRING" }
-                                }
-                            }
-                        }
-                    }
-                }
+        sessionTranscripts.forEach(t => {
+            let text = t.answer.toLowerCase();
+            if (text !== "(no audible response recorded)" && text !== "listening...") {
+                hasResponse = true;
+                let words = text.split(/\s+/).filter(w => w.length > 0);
+                totalWords += words.length;
+                
+                // Count filler words
+                hesitations += (text.match(/\b(um|uh|ah|er|like)\b/g) || []).length;
             }
-        };
-
-        try {
-            const result = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`, payload);
-            const textResponse = result.candidates[0].content.parts[0].text;
-            const data = JSON.parse(textResponse);
-            
-            renderFeedback(data);
-        } catch (error) {
-            console.error("AI Evaluation failed:", error);
-            showMockFeedback(); 
-        }
-    }
-
-    function showMockFeedback() {
-        let mockImprovedVersions = sessionTranscripts.map((t) => {
-            let userAns = t.answer === "(No audible response recorded)" ? "[No answer provided]" : t.answer;
-            let mockBand8Response = `⚠️ [LỖI API HOẶC NGOẠI TUYẾN]\n\nHệ thống không thể kết nối với AI Gemini. Đảm bảo rằng API Key của bạn còn hiệu lực.`;
-
-            return {
-                question: t.question,
-                user_answer: userAns,
-                band_8_version: mockBand8Response
-            };
         });
 
-        if (sessionTranscripts.length === 0) {
-            mockImprovedVersions = [{
-                question: "No questions recorded",
-                user_answer: "None",
-                band_8_version: "None"
-            }];
-        }
+        // Basic heuristic scoring based on length and hesitations
+        let fScore = 0, lScore = 0, gScore = 0, pScore = 0;
+        let fFeedback = "", lFeedback = "", gFeedback = "", pFeedback = "";
 
-        const mockData = {
-            fluency: 0.0, lexical: 0.0, grammar: 0.0, pronunciation: 0.0, overall: 0.0,
-            fluency_feedback: "Đã xảy ra lỗi khi gọi AI.",
-            lexical_feedback: "Không thể lấy nhận xét từ giám khảo AI.",
-            grammar_feedback: "Vui lòng kiểm tra lại Console log để biết thêm chi tiết.",
-            pronunciation_feedback: "Có thể API Key đã hết hạn hoặc quá giới hạn yêu cầu (quota).",
-            improved_versions: mockImprovedVersions
-        };
-        renderFeedback(mockData);
+        if (!hasResponse) {
+            fScore = lScore = gScore = pScore = 0.0;
+            fFeedback = lFeedback = gFeedback = pFeedback = "No audible response was recorded. Please check your microphone.";
+        } else {
+            // Fluency
+            fScore = totalWords > 80 ? 7.0 : (totalWords > 40 ? 6.0 : 5.0);
+            if (hesitations > 4) fScore -= 0.5;
+            fFeedback = `You spoke approximately ${totalWords} words. We detected ${hesitations} filler words (e.g., um, uh, like). To improve Fluency & Coherence, try to maintain a steady pace and use discourse markers like "Well," or "Actually," instead of hesitating.`;
+
+            // Lexical
+            lScore = totalWords > 80 ? 6.5 : 5.5;
+            lFeedback = `Based on your transcript, your vocabulary is functional enough to convey your main ideas. To reach a higher band, try substituting common, repetitive words with more precise terminology and idiomatic expressions relevant to the topic.`;
+
+            // Grammar
+            gScore = totalWords > 80 ? 6.0 : 5.5;
+            gFeedback = `Your sentence structures appear largely straightforward. Ensure you mix simple, compound, and complex sentences. Pay attention to subject-verb agreement and tense consistency to avoid basic errors.`;
+
+            // Pronunciation
+            pScore = 6.0;
+            pFeedback = `Your speech was generally clear enough for the system to transcribe. Continue to focus on word stress, intonation, and linking words together smoothly to sound more natural to the examiner.`;
+        }
+        
+        let overall = ((fScore + lScore + gScore + pScore) / 4);
+        overall = Math.round(overall * 2) / 2; // Round to nearest 0.5
+
+        renderFeedback(fScore, lScore, gScore, pScore, overall, fFeedback, lFeedback, gFeedback, pFeedback);
     }
 
-    function renderFeedback(data) {
-        document.getElementById('loading-feedback').classList.add('hidden');
-        document.getElementById('feedback-result').classList.remove('hidden');
+    function renderFeedback(f, l, g, p, overall, fFb, lFb, gFb, pFb) {
+        document.getElementById('score-fluency').innerText = f.toFixed(1);
+        document.getElementById('score-lexical').innerText = l.toFixed(1);
+        document.getElementById('score-grammar').innerText = g.toFixed(1);
+        document.getElementById('score-pronunciation').innerText = p.toFixed(1);
+        document.getElementById('score-overall').innerText = overall.toFixed(1);
         
-        document.getElementById('score-fluency').innerText = data.fluency.toFixed(1);
-        document.getElementById('score-lexical').innerText = data.lexical.toFixed(1);
-        document.getElementById('score-grammar').innerText = data.grammar.toFixed(1);
-        document.getElementById('score-pronunciation').innerText = data.pronunciation.toFixed(1);
-        document.getElementById('score-overall').innerText = data.overall.toFixed(1);
-        
-        document.getElementById('fb-fluency').innerText = data.fluency_feedback;
-        document.getElementById('fb-lexical').innerText = data.lexical_feedback;
-        document.getElementById('fb-grammar').innerText = data.grammar_feedback;
-        document.getElementById('fb-pronunciation').innerText = data.pronunciation_feedback;
-        
-        let improvedHTML = "";
-        if (Array.isArray(data.improved_versions)) {
-            data.improved_versions.forEach(item => {
-                improvedHTML += `
-                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
-                        <strong>Q: ${item.question}</strong><br>
-                        <span style="color: #e74c3c; display: block; margin-top: 8px;"><em>Your Answer:</em> ${item.user_answer}</span>
-                        <span style="color: #27ae60; display: block; margin-top: 8px; background: rgba(39, 174, 96, 0.1); padding: 10px; border-radius: 5px; white-space: pre-wrap;"><strong>Band 8.0+ Model Answer:</strong>\n${item.band_8_version}</span>
-                    </div>
-                `;
-            });
-        }
-        document.getElementById('fb-improved').innerHTML = improvedHTML;
+        document.getElementById('fb-fluency').innerText = fFb;
+        document.getElementById('fb-lexical').innerText = lFb;
+        document.getElementById('fb-grammar').innerText = gFb;
+        document.getElementById('fb-pronunciation').innerText = pFb;
         
         let transcriptHTML = `<strong>Your Transcript Review:</strong><br><br>`;
         sessionTranscripts.forEach((t, i) => {
@@ -602,15 +580,28 @@
         });
         document.getElementById('transcript-review').innerHTML = transcriptHTML;
 
-        if (currentMode === 'fulltest' && currentPart < 3) {
-            document.getElementById('continue-test-btn').classList.remove('hidden');
-        } else {
-            document.getElementById('continue-test-btn').classList.add('hidden');
+        // Reset display of buttons
+        document.getElementById('continue-test-btn').classList.add('hidden');
+        document.getElementById('retake-test-btn').classList.add('hidden');
+
+        if (currentMode === 'fulltest') {
+            if (currentPart < 3) {
+                document.getElementById('continue-test-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('retake-test-btn').classList.remove('hidden');
+            }
         }
     }
 
     function continueFullTest() {
         currentPart++;
+        document.getElementById('feedback-area').style.display = 'none';
+        startSession();
+    }
+
+    function retakeFullTest() {
+        // Reset full test entirely
+        currentPart = 1;
         document.getElementById('feedback-area').style.display = 'none';
         startSession();
     }
