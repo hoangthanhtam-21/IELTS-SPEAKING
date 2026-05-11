@@ -406,7 +406,13 @@
     function startRecordingPhase() {
         document.getElementById('status-msg').innerHTML = "<span class='recording-indicator'></span> Recording... Speak now!";
         document.getElementById('transcript-container').classList.remove('hidden');
-        document.getElementById('next-q-btn').classList.remove('hidden');
+        
+        // Khôi phục lại nút Next Question (tránh lỗi kẹt chức năng từ Part 2)
+        const nextBtn = document.getElementById('next-q-btn');
+        nextBtn.innerText = "Next Question →";
+        nextBtn.onclick = nextQuestion;
+        nextBtn.classList.remove('hidden');
+        
         document.getElementById('replay-btn').classList.remove('hidden');
         document.getElementById('change-q-btn').classList.remove('hidden');
         
@@ -487,6 +493,34 @@
     // ==========================================
     // 6. UTILS & DYNAMIC FEEDBACK
     // ==========================================
+    
+    // Hàm phát âm thanh khi hết giờ (Tiếng Beep kép)
+    function playTimeUpSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            
+            function beep(freq, time, duration) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.5, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(time);
+                osc.stop(time + duration);
+            }
+            
+            beep(600, ctx.currentTime, 0.2);
+            beep(600, ctx.currentTime + 0.3, 0.4);
+        } catch(e) {
+            console.error("Audio API not supported", e);
+        }
+    }
+
     function speak(text, callback) {
         if(!ukVoice) loadVoices(); 
         synth.cancel();
@@ -509,6 +543,7 @@
             timerEl.innerText = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`;
             if(timeLeft <= 0) {
                 clearInterval(timerInterval);
+                playTimeUpSound(); // Phát âm thanh khi về 0
                 if(callback) callback();
             }
         }, 1000);
