@@ -3,194 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Speaking Simulator - THPT Nguyễn Khuyến</title>
+    <title>IELTS Speaking Simulator - Practice Mode Updated</title>
     <script src="questions.js"></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #e74c3c; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--primary); line-height: 1.6; margin: 0; }
-        .container { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; color: var(--primary); }
-        .menu-btns { display: flex; gap: 20px; justify-content: center; margin-top: 30px; }
-        button { padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-main { background: var(--primary); color: white; }
-        .btn-main:hover { opacity: 0.9; transform: translateY(-2px); }
-        .test-area { display: none; margin-top: 30px; }
-        .timer { font-size: 2rem; font-weight: bold; color: var(--accent); text-align: center; margin: 20px 0; }
-        .question-box { background: #ebf2f7; padding: 20px; border-left: 5px solid var(--primary); margin-bottom: 20px; min-height: 100px; }
-        .status { font-style: italic; color: #666; text-align: center; }
-        .feedback { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin-top: 20px; border-radius: 5px; }
-        .hidden { display: none; }
+        :root { --primary: #2c3e50; --accent: #e74c3c; --bg: #f4f7f6; --success: #27ae60; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--primary); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 90%; max-width: 800px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; }
+        h1, h2 { text-align: center; margin-bottom: 20px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .full-width { grid-column: span 2; }
+        button { padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #34495e; transform: translateY(-2px); }
+        .btn-back { background: #bdc3c7; color: var(--primary); margin-bottom: 20px; }
+        .test-area { display: none; }
+        .timer { font-size: 2.5rem; text-align: center; color: var(--accent); margin: 20px 0; font-family: monospace; }
+        .status-box { text-align: center; padding: 15px; background: #eee; border-radius: 8px; margin-bottom: 20px; min-height: 50px; }
+        .question-card { background: #fff; border: 2px dashed #bdc3c7; padding: 20px; text-align: center; margin-bottom: 20px; border-radius: 10px; font-size: 1.2rem; }
+        .hidden { display: none !important; }
+        .feedback-list { background: #fff3cd; padding: 20px; border-radius: 8px; border-left: 5px solid #ffc107; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>IELTS SPEAKING SIMULATOR</h1>
+    <button id="global-back-btn" class="btn-back hidden" onclick="goBack()">← Back</button>
+
     <div id="main-menu">
-        <p style="text-align:center">Welcome to the professional IELTS mock test system.</p>
-        <div class="menu-btns">
-            <button class="btn-main" onclick="startMode('practice')">PRACTICE MODE</button>
-            <button class="btn-main" onclick="startMode('fulltest')">FULL TEST MODE</button>
+        <h1>IELTS Speaking Simulator</h1>
+        <div class="menu-grid">
+            <button class="btn-primary full-width" onclick="showPracticeMenu()">PRACTICE MODE</button>
+            <button class="btn-primary full-width" onclick="startMode('fulltest')">FULL TEST MODE</button>
+        </div>
+    </div>
+
+    <div id="practice-menu" class="hidden">
+        <h2>Choose a Part to Practice</h2>
+        <div class="menu-grid">
+            <button class="btn-primary" onclick="startPracticePart(1)">Part 1</button>
+            <button class="btn-primary" onclick="startPracticePart(2)">Part 2</button>
+            <button class="btn-primary" onclick="startPracticePart(3)">Part 3</button>
         </div>
     </div>
 
     <div id="test-area" class="test-area">
-        <h2 id="current-part-title">PART 1</h2>
-        <div class="status" id="status-msg">Click 'Start Recording' to begin</div>
+        <h2 id="part-title">PART 1</h2>
         <div class="timer" id="timer">00:00</div>
-        <div class="question-box" id="question-display"></div>
         
-        <div style="text-align: center;">
-            <button id="record-btn" class="btn-main" style="background: #27ae60;">START RECORDING</button>
-            <button id="next-btn" class="btn-main hidden" style="background: #2980b9;">NEXT STEP</button>
+        <div class="status-box" id="status-msg">Ready to start?</div>
+        
+        <div id="question-container" class="question-card hidden"></div>
+
+        <div style="text-align: center; display: flex; justify-content: center; gap: 10px;">
+            <button id="action-btn" class="btn-primary" style="background: var(--success);" onclick="handleAction()">START SESSION</button>
+            <button id="next-q-btn" class="btn-primary hidden" onclick="nextQuestion()">Next Question →</button>
         </div>
 
-        <div id="feedback-area" class="hidden">
-            <h3>Examiner's Feedback</h3>
-            <div class="feedback" id="feedback-content"></div>
+        <div id="feedback-section" class="hidden">
+            <h3>Examiner's Assessment</h3>
+            <div id="feedback-content" class="feedback-list"></div>
         </div>
     </div>
 </div>
 
 <script>
-    let currentMode = '';
-    let currentStep = 0; // For Full Test: 0=P1, 1=P2, 2=P3
-    let selectedPart2Topic = '';
-    let mediaRecorder;
-    let audioChunks = [];
+    let currentMode = ''; 
+    let currentPart = 0;
+    let questionsPool = [];
+    let currentQIndex = 0;
+    let isRecording = false;
 
-    const display = document.getElementById('question-display');
-    const statusMsg = document.getElementById('status-msg');
-    const timerDisplay = document.getElementById('timer');
-    const nextBtn = document.getElementById('next-btn');
+    // Cấu hình giọng đọc
+    const synth = window.speechSynthesis;
+
+    function showPracticeMenu() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('practice-menu').classList.remove('hidden');
+        document.getElementById('global-back-btn').classList.remove('hidden');
+    }
+
+    function goBack() {
+        location.reload(); // Cách đơn giản nhất để reset trạng thái
+    }
 
     function startMode(mode) {
         currentMode = mode;
+        if(mode === 'fulltest') {
+            currentPart = 1;
+            startSession();
+        }
+    }
+
+    function startPracticePart(part) {
+        currentMode = 'practice';
+        currentPart = part;
+        document.getElementById('practice-menu').classList.add('hidden');
+        startSession();
+    }
+
+    function startSession() {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('test-area').style.display = 'block';
+        document.getElementById('global-back-btn').classList.remove('hidden');
+        document.getElementById('part-title').innerText = "PART " + currentPart;
         
-        if(mode === 'practice') {
-            setupPractice();
+        prepareQuestions();
+    }
+
+    function prepareQuestions() {
+        if(currentPart === 1) {
+            // [cite: 4-13] Bốc 4 câu từ 4 topics
+            questionsPool = ieltsData.part1.map(t => t.questions[Math.floor(Math.random() * t.questions.length)]);
+        } else if(currentPart === 2) {
+            // [cite: 33-55] Bốc 1 topic ngẫu nhiên
+            let t = ieltsData.part2[Math.floor(Math.random() * ieltsData.part2.length)];
+            questionsPool = [t.content];
         } else {
-            setupFullTest();
+            // [cite: 79-98] Bốc 3 câu ngẫu nhiên từ 1 topic Part 3
+            let topicObj = ieltsData.part3[Math.floor(Math.random() * ieltsData.part3.length)];
+            questionsPool = [...topicObj.questions].sort(() => 0.5 - Math.random()).slice(0, 3);
         }
     }
 
-    // --- Logic Pick Questions ---
-    function setupPractice() {
-        // Simple example: Start with a random part
-        const rand = Math.floor(Math.random() * 3) + 1;
-        loadPart(rand);
-    }
-
-    function setupFullTest() {
-        currentStep = 1;
-        loadPart(1);
-    }
-
-    function loadPart(partNum) {
-        document.getElementById('current-part-title').innerText = `PART ${partNum}`;
-        display.innerHTML = '';
-        nextBtn.classList.add('hidden');
+    function handleAction() {
+        const btn = document.getElementById('action-btn');
         
-        if(partNum === 1) {
-            // Part 1: Pick 4 random questions from 4 topics [cite: 4-13]
-            let selected = ieltsData.part1.map(topic => {
-                return topic.questions[Math.floor(Math.random() * topic.questions.length)];
-            });
-            display.innerHTML = `<ul>${selected.map(q => `<li>${q}</li>`).join('')}</ul>`;
-        } 
-        else if(partNum === 2) {
-            // Part 2: Random topic [cite: 33, 40, 57, 73]
-            const topicObj = ieltsData.part2[Math.floor(Math.random() * ieltsData.part2.length)];
-            selectedPart2Topic = topicObj.topic;
-            display.innerText = topicObj.content;
-            handlePart2Timing();
+        if (currentPart === 2) {
+            startPart2Flow();
+        } else {
+            startAudioQuestionFlow();
         }
-        else if(partNum === 3) {
-            // Part 3: 3 questions from P2 topic (Full test) or random (Practice) [cite: 79-98]
-            let topicName = (currentMode === 'fulltest') ? selectedPart2Topic : ieltsData.part3[Math.floor(Math.random()*4)].topic;
-            let topicObj = ieltsData.part3.find(t => t.topic === topicName) || ieltsData.part3[0];
-            let shuffled = [...topicObj.questions].sort(() => 0.5 - Math.random()).slice(0, 3);
-            display.innerHTML = `<strong>Topic: ${topicName}</strong><ul>${shuffled.map(q => `<li>${q}</li>`).join('')}</ul>`;
+        btn.classList.add('hidden');
+    }
+
+    // Luồng Part 1 & 3: Đọc -> Trả lời -> Next
+    function startAudioQuestionFlow() {
+        if(currentQIndex < questionsPool.length) {
+            const q = questionsPool[currentQIndex];
+            document.getElementById('question-container').classList.add('hidden'); // Đảm bảo ẩn câu hỏi
+            document.getElementById('status-msg').innerText = "Listen carefully...";
+            
+            speak(q, () => {
+                document.getElementById('status-msg').innerText = "Speaking now...";
+                document.getElementById('next-q-btn').classList.remove('hidden');
+                startTimer(45); // Mỗi câu part 1/3 cho tối đa 45s
+            });
         }
     }
 
-    // --- Part 2 Timing Logic ---
-    function handlePart2Timing() {
-        statusMsg.innerText = "PREPARATION TIME: 1 MINUTE";
+    function nextQuestion() {
+        currentQIndex++;
+        if(currentQIndex < questionsPool.length) {
+            document.getElementById('next-q-btn').classList.add('hidden');
+            startAudioQuestionFlow();
+        } else {
+            finishPart();
+        }
+    }
+
+    // Luồng Part 2: Hiện đề -> Chuẩn bị -> Nói 
+    function startPart2Flow() {
+        const display = document.getElementById('question-container');
+        display.classList.remove('hidden');
+        display.innerText = questionsPool[0];
+        
+        document.getElementById('status-msg').innerText = "PREPARATION TIME (1 MIN)";
         startTimer(60, () => {
-            alert("Preparation time is up! Now you have 2 minutes to speak.");
-            statusMsg.innerText = "SPEAKING TIME: 2 MINUTES";
-            startTimer(120, () => {
-                statusMsg.innerText = "Time's up!";
-                showFeedback(2);
-            });
+            alert("Time's up! Start speaking for 2 minutes.");
+            document.getElementById('status-msg').innerText = "SPEAKING TIME (2 MINS)";
+            startTimer(120, finishPart);
         });
+    }
+
+    function speak(text, callback) {
+        synth.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'en-US';
+        utter.rate = 0.9;
+        utter.onend = callback;
+        synth.speak(utter);
     }
 
     function startTimer(seconds, callback) {
         let timeLeft = seconds;
+        const timerEl = document.getElementById('timer');
         const interval = setInterval(() => {
-            const m = Math.floor(timeLeft / 60);
-            const s = timeLeft % 60;
-            timerDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            let m = Math.floor(timeLeft / 60);
+            let s = timeLeft % 60;
+            timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             if(timeLeft <= 0) {
                 clearInterval(interval);
-                callback();
+                if(callback) callback();
             }
             timeLeft--;
         }, 1000);
     }
 
-    // --- Strict Examiner Feedback ---
-    function showFeedback(part) {
-        const criteria = ["Fluency", "Lexical Resource", "Grammar", "Pronunciation"];
-        const scores = [5.5, 6.0, 5.0, 6.0]; // Simulated scores
-        const feedbackArea = document.getElementById('feedback-area');
-        const content = document.getElementById('feedback-content');
+    function finishPart() {
+        document.getElementById('next-q-btn').classList.add('hidden');
+        document.getElementById('status-msg').innerText = "Part Completed.";
+        document.getElementById('feedback-section').classList.remove('hidden');
         
-        feedbackArea.classList.remove('hidden');
-        let html = `<p><strong>Estimated Band: ${scores.reduce((a,b)=>a+b,0)/4}</strong></p><ul>`;
-        
-        criteria.forEach(c => {
-            html += `<li><strong>${c}:</strong> You showed some hesitation. Needs more complex structures.</li>`;
-        });
-        html += `</ul><p><em>Note: As a strict examiner, I recommend focusing on linking words and avoiding repetition.</em></p>`;
-        
-        content.innerHTML = html;
-        nextBtn.classList.remove('hidden');
-        
-        nextBtn.onclick = () => {
-            feedbackArea.classList.add('hidden');
-            if(currentMode === 'fulltest' && currentStep < 3) {
-                currentStep++;
-                loadPart(currentStep);
-            } else {
-                alert("Session Completed!");
-                location.reload();
-            }
-        };
+        // Mock Feedback khó tính
+        document.getElementById('feedback-content').innerHTML = `
+            <p><strong>Examiner's Note:</strong> Your response was adequate but lacked idiomatic expressions. 
+            In Part ${currentPart}, you should focus more on extending your answers without repetitive fillers.</p>
+            <p><strong>Estimated Band: 5.5 - 6.0</strong></p>
+        `;
     }
-
-    // --- Audio Recording ---
-    document.getElementById('record-btn').onclick = async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.start();
-        statusMsg.innerText = "Recording... Speak now.";
-        document.getElementById('record-btn').disabled = true;
-        
-        // Auto stop for Part 1 & 3 after 2 mins if user doesn't stop
-        if(currentStep !== 2) {
-             setTimeout(() => {
-                if(mediaRecorder.state === "recording") {
-                    mediaRecorder.stop();
-                    showFeedback(currentStep || 1);
-                }
-             }, 120000);
-        }
-    };
 </script>
+
 </body>
 </html>
