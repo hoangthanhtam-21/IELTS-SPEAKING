@@ -172,7 +172,7 @@
             { topic: "HOMES", questions: ["Do you live in a house or an apartment?", "Which is your favourite room in your home? Why?", "Would you change anything about your home? Why / why not?", "What do you think makes a house feel like a home?", "Would you like to move to a different home in the future?"] },
             { topic: "SPORTS", questions: ["Do you like playing sports?", "Do you think doing sports is a good way to relax?", "What sports are popular in your country?", "Do you think it is important to play a sport?"] },
             { topic: "NEWS AND MEDIA", questions: ["Do you often read the news?", "Where do you usually get the news from?", "What kind of news do you usually follow?", "In which kinds of circumstances do you usually listen to the radio?", "Do you prefer reading online news or in newspapers?", "What are the most credible media sources in your country?"] },
-            { topic: "TRAVELS AND TRANSPORTATION", questions: ["How do you go to work/school?", "What's the most popular means of transportation in your hometown?", "Do you think people will drive more in the future?", "How often do you take buses?", "Can you compare the advantages of planes and trains?", "What form of transport do you prefer to use? Why?", "What type of public transport can be found in your city?", "Would you ride bikes to work in the future?", "Where do you like to go on your vacation/holiday?"] }
+            { topic: "TRAVELS AND TRANSPORTATION", questions: ["How do you go to work or school?", "What's the most popular means of transportation in your hometown?", "Do you think people will drive more in the future?", "How often do you take buses?", "Can you compare the advantages of planes and trains?", "What form of transport do you prefer to use? Why?", "What type of public transport can be found in your city?", "Would you ride bikes to work in the future?", "Where do you like to go on your vacation/holiday?"] }
         ],
         part2: [
             { topic: "HOMES", content: "Describe a house or apartment you would like to live in in the future.\n\nYou should say:\n- Where it is\n- What kind of accommodation it is\n- What it is like\n- And how you feel about this dream house/apartment." },
@@ -499,9 +499,11 @@
         4. Pronunciation (Estimate based on text flow, spelling anomalies in recognition, and structure).
         
         Output MUST be valid JSON matching the requested schema. Provide DETAILED, SPECIFIC feedback for each criterion (2-3 sentences each) mentioning exact words or mistakes from the transcript. 
-        Crucially, for 'improved_versions', you MUST return an array of objects. Each object must contain the exact 'question', the student's exact 'user_answer', and a 'band_8_version' which is a rewriting of their specific answer using advanced vocabulary, idioms, and complex grammar (Band 8.0+) while keeping their original meaning.`;
+        
+        CRITICAL INSTRUCTION FOR 'improved_versions':
+        Do NOT just fix the typos in the student's transcript. You MUST provide an array of objects where 'band_8_version' is a FULLY ELEVATED, natural-sounding Band 8.0+ model answer. Take the student's core idea and transform it using advanced vocabulary, native-like idioms, complex grammar structures, and excellent coherence. If the student's answer is too short or broken, EXPAND on it logically to demonstrate how a high-scoring candidate would thoroughly answer the question.`;
 
-        const userPrompt = `Please evaluate this IELTS Part ${currentPart} performance:\n\n${conversationText}\n\nProvide scores from 0.0 to 9.0 (in 0.5 increments). Be highly critical of grammar, filler words, vocabulary usage, and short answers. Give specific examples from the transcript in your feedback.`;
+        const userPrompt = `Please evaluate this IELTS Part ${currentPart} performance:\n\n${conversationText}\n\nProvide scores from 0.0 to 9.0 (in 0.5 increments). Be highly critical of grammar, filler words, vocabulary usage, and short answers. Give specific examples from the transcript in your feedback. Make sure the improved versions sound like native speakers aiming for a perfect score.`;
 
         const payload = {
             contents: [{ parts: [{ text: userPrompt }] }],
@@ -552,10 +554,18 @@
         // Generate mock improved versions based on ACTUAL user transcript structured as an Array
         let mockImprovedVersions = sessionTranscripts.map((t) => {
             let userAns = t.answer === "(No audible response recorded)" ? "[No answer provided]" : t.answer;
+            let mockBand8Response = "";
+            
+            if (userAns !== "[No answer provided]" && userAns.length > 5) {
+                mockBand8Response = `To be completely honest, I'd have to say that... [Bản cải thiện mẫu mô phỏng từ ý gốc: "${userAns.substring(0, 30)}..."] It's not just about the basic aspects you mentioned, but rather the underlying significance. For instance, incorporating far more sophisticated terminology and ensuring a seamless flow between clauses would naturally elevate this to a much higher standard.`;
+            } else {
+                mockBand8Response = `Since you didn't provide a clear answer, a Band 8 candidate might approach this by saying: "Well, that's quite an interesting question. I suppose if I had to choose, I would definitely lean towards..." (and then expanding with a detailed, well-structured explanation).`;
+            }
+
             return {
                 question: t.question,
                 user_answer: userAns,
-                band_8_version: `(Mock AI) Well, regarding "${t.question}", I would express it this way: [Enhanced vocabulary and grammar applied to: "${userAns}"]`
+                band_8_version: mockBand8Response
             };
         });
 
@@ -601,8 +611,8 @@
                 improvedHTML += `
                     <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
                         <strong>Q: ${item.question}</strong><br>
-                        <span style="color: #e74c3c;"><em>Your Answer:</em> ${item.user_answer}</span><br>
-                        <span style="color: #27ae60; display: inline-block; margin-top: 5px;"><strong>Band 8.0+ Version:</strong> ${item.band_8_version}</span>
+                        <span style="color: #e74c3c; display: block; margin-top: 8px;"><em>Your Answer:</em> ${item.user_answer}</span>
+                        <span style="color: #27ae60; display: block; margin-top: 8px; background: rgba(39, 174, 96, 0.1); padding: 10px; border-radius: 5px;"><strong>Band 8.0+ Model Answer:</strong> ${item.band_8_version}</span>
                     </div>
                 `;
             });
