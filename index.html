@@ -289,6 +289,16 @@
         document.getElementById('global-back-btn').classList.remove('hidden');
         document.getElementById('part-title').innerText = "PART " + currentPart;
         
+        // Reset UI Components for the new Session
+        document.getElementById('action-btn').classList.remove('hidden');
+        document.getElementById('next-q-btn').classList.add('hidden');
+        document.getElementById('replay-btn').classList.add('hidden');
+        document.getElementById('change-q-btn').classList.add('hidden');
+        document.getElementById('question-container').classList.add('hidden');
+        document.getElementById('transcript-container').classList.add('hidden');
+        document.getElementById('status-msg').innerHTML = "Click 'Start' when you are ready.";
+        document.getElementById('timer').innerText = "00:00";
+
         sessionTranscripts = [];
         currentQIndex = 0;
         prepareQuestions();
