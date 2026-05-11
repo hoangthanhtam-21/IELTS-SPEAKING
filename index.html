@@ -345,8 +345,9 @@
         
         if(recognition) recognition.start();
         
-        // Auto timeout for safety (45 secs per answer)
-        startTimer(45, () => {
+        // Auto timeout for safety: 45 secs for Part 1, 60 secs for Part 3
+        const timeLimit = currentPart === 3 ? 60 : 45;
+        startTimer(timeLimit, () => {
             if(document.getElementById('next-q-btn').classList.contains('hidden') === false) {
                 nextQuestion();
             }
@@ -497,7 +498,8 @@
         3. Grammatical Range and Accuracy
         4. Pronunciation (Estimate based on text flow, spelling anomalies in recognition, and structure).
         
-        Output MUST be valid JSON matching the requested schema. Provide DETAILED, SPECIFIC feedback for each criterion (2-3 sentences each) mentioning exact words or mistakes from the transcript. Finally, provide 'improved_versions' containing a Band 8.0+ natural reformulation for each answer the student provided.`;
+        Output MUST be valid JSON matching the requested schema. Provide DETAILED, SPECIFIC feedback for each criterion (2-3 sentences each) mentioning exact words or mistakes from the transcript. 
+        Crucially, for 'improved_versions', you MUST rewrite the student's actual answers. Do not use generic examples. For every single question in the transcript, provide a Band 8.0+ version that preserves the student's original intent but upgrades the vocabulary, grammar, and fluency. Format it clearly as Q1, Q2, etc.`;
 
         const userPrompt = `Please evaluate this IELTS Part ${currentPart} performance:\n\n${conversationText}\n\nProvide scores from 0.0 to 9.0 (in 0.5 increments). Be highly critical of grammar, filler words, vocabulary usage, and short answers. Give specific examples from the transcript in your feedback.`;
 
@@ -537,14 +539,23 @@
     }
 
     function showMockFeedback() {
-        // Fallback if AI fails or no transcript
+        // Generate mock improved versions based on ACTUAL user transcript
+        let mockImproved = sessionTranscripts.map((t, i) => {
+            let userAns = t.answer === "(No audible response recorded)" ? "[No answer provided]" : t.answer;
+            return `Q${i+1} (${t.question})\nYour Answer: "${userAns}"\nBand 8.0+ Version: "To be completely honest, [this is where the AI will dynamically insert sophisticated vocabulary, idiomatic expressions, and complex grammar structures to elevate your original ideas...]"`;
+        }).join("\n\n");
+
+        if (sessionTranscripts.length === 0) {
+            mockImproved = "No answers were recorded to improve.";
+        }
+
         const mockData = {
             fluency: 5.5, lexical: 6.0, grammar: 5.0, pronunciation: 5.5, overall: 5.5,
             fluency_feedback: "You had noticeable hesitations and pauses while searching for words. Try to use discourse markers like 'Well', 'To be honest', or 'Actually' to buy time naturally instead of staying silent.",
             lexical_feedback: "Your vocabulary is adequate for familiar topics but lacks less common/idiomatic expressions. You repeated certain basic words. Try to incorporate better collocations.",
             grammar_feedback: "You relied mostly on simple sentence structures. There were noticeable errors in subject-verb agreement and tense consistency. Practice using complex clauses (e.g., relative clauses, conditionals).",
             pronunciation_feedback: "Based on the transcript, there might be occasional mispronunciations or flat intonation that caused the recognition system to miss a few words. Focus on word stress and linking words.",
-            improved_versions: "Q1: To be honest, I live in a fairly spacious apartment right in the heart of the city. What I love most about it is the convenience..."
+            improved_versions: "(Note: This is a system mock. When the API key is connected, the AI will provide specific improvements based on your exact transcript below.)\n\n" + mockImproved
         };
         renderFeedback(mockData);
     }
