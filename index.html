@@ -57,10 +57,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .browser-warning { background: #ffdddd; border-left: 5px solid #f44336; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; }
-        
-        /* API Key Section */
-        .api-setup { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; }
-        .api-setup input { padding: 10px; width: 80%; max-width: 400px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -78,13 +74,6 @@
         <div class="menu-grid">
             <button class="btn-primary full-width" onclick="showPracticeMenu()">PRACTICE MODE</button>
             <button class="btn-primary full-width" onclick="startMode('fulltest')">FULL TEST MODE (All Parts)</button>
-        </div>
-
-        <!-- API Setup for GitHub Hosting -->
-        <div class="api-setup">
-            <strong>[For GitHub Hosting]</strong><br>
-            <span style="font-size: 0.85rem; color: #555;">To get real AI feedback, please enter your Gemini API Key below. (Leave blank if running inside the Simulator Canvas)</span><br>
-            <input type="password" id="custom-api-key" placeholder="Enter Gemini API Key (AI Studio)...">
         </div>
     </div>
 
@@ -203,7 +192,7 @@
     // ==========================================
     // 2. SYSTEM STATE & AI CONFIG
     // ==========================================
-    let envApiKey = "AIzaSyARUAQCh1b0IO5AAEEqZl1Uhty2VJxQQqU"; // Injected by execution environment internally
+    const activeApiKey = "AIzaSyARUAQCh1b0IO5AAEEqZl1Uhty2VJxQQqU"; // Injected by execution environment internally
     let currentMode = ''; 
     let currentPart = 0;
     let questionsPool = [];
@@ -257,12 +246,6 @@
     }
     synth.onvoiceschanged = loadVoices;
 
-    // Load saved API key from local storage if exists
-    window.onload = () => {
-        const savedKey = localStorage.getItem('user_gemini_api_key');
-        if (savedKey) document.getElementById('custom-api-key').value = savedKey;
-    };
-
     // ==========================================
     // 3. UI LOGIC
     // ==========================================
@@ -270,11 +253,9 @@
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('practice-menu').classList.remove('hidden');
         document.getElementById('global-back-btn').classList.remove('hidden');
-        saveApiKey();
     }
 
     function startMode(mode) {
-        saveApiKey();
         currentMode = mode;
         if(mode === 'fulltest') {
             currentPart = 1;
@@ -287,13 +268,6 @@
         currentPart = part;
         document.getElementById('practice-menu').classList.add('hidden');
         startSession();
-    }
-
-    function saveApiKey() {
-        const customKey = document.getElementById('custom-api-key').value.trim();
-        if(customKey) {
-            localStorage.setItem('user_gemini_api_key', customKey);
-        }
     }
 
     function startSession() {
@@ -494,10 +468,6 @@
     }
 
     async function generateAIFeedback() {
-        // GET API KEY: Prefer User's Input over Environment to support GitHub Pages
-        const customApiKey = document.getElementById('custom-api-key').value.trim();
-        const activeApiKey = customApiKey || envApiKey;
-
         if (!activeApiKey) {
             showMockFeedback(); // Fallback if NO key exists
             return;
@@ -567,10 +537,9 @@
     }
 
     function showMockFeedback() {
-        // Clear message for users missing an API Key
         let mockImprovedVersions = sessionTranscripts.map((t) => {
             let userAns = t.answer === "(No audible response recorded)" ? "[No answer provided]" : t.answer;
-            let mockBand8Response = `⚠️ [OFFLINE MODE - NO API KEY DETECTED]\n\nĐể AI có thể tự động viết lại câu trả lời "${userAns}" của bạn bằng từ vựng Band 8.0+, bạn cần cung cấp API Key của Gemini ở màn hình chính (trang chủ) trước khi luyện tập.`;
+            let mockBand8Response = `⚠️ [LỖI API HOẶC NGOẠI TUYẾN]\n\nHệ thống không thể kết nối với AI Gemini. Đảm bảo rằng API Key của bạn còn hiệu lực.`;
 
             return {
                 question: t.question,
@@ -589,10 +558,10 @@
 
         const mockData = {
             fluency: 0.0, lexical: 0.0, grammar: 0.0, pronunciation: 0.0, overall: 0.0,
-            fluency_feedback: "Hệ thống đang chạy ở chế độ OFFLINE vì không tìm thấy API Key.",
-            lexical_feedback: "Vui lòng nhập Gemini API Key ở trang chủ (chỗ '[For GitHub Hosting]') để kích hoạt chức năng chấm điểm bằng Trí tuệ nhân tạo.",
-            grammar_feedback: "Khóa API có thể lấy miễn phí từ trang Google AI Studio.",
-            pronunciation_feedback: "Tính năng nhận diện giọng nói vẫn hoạt động, nhưng tính năng AI chấm điểm đang bị vô hiệu hóa.",
+            fluency_feedback: "Đã xảy ra lỗi khi gọi AI.",
+            lexical_feedback: "Không thể lấy nhận xét từ giám khảo AI.",
+            grammar_feedback: "Vui lòng kiểm tra lại Console log để biết thêm chi tiết.",
+            pronunciation_feedback: "Có thể API Key đã hết hạn hoặc quá giới hạn yêu cầu (quota).",
             improved_versions: mockImprovedVersions
         };
         renderFeedback(mockData);
