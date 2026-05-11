@@ -152,7 +152,7 @@
             
             <div class="feedback-section improved-section">
                 <h4>Suggested Improved Versions</h4>
-                <p id="fb-improved"></p>
+                <div id="fb-improved"></div>
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
@@ -499,7 +499,7 @@
         4. Pronunciation (Estimate based on text flow, spelling anomalies in recognition, and structure).
         
         Output MUST be valid JSON matching the requested schema. Provide DETAILED, SPECIFIC feedback for each criterion (2-3 sentences each) mentioning exact words or mistakes from the transcript. 
-        Crucially, for 'improved_versions', you MUST rewrite the student's actual answers. Do not use generic examples. For every single question in the transcript, provide a Band 8.0+ version that preserves the student's original intent but upgrades the vocabulary, grammar, and fluency. Format it clearly as Q1, Q2, etc.`;
+        Crucially, for 'improved_versions', you MUST return an array of objects. Each object must contain the exact 'question', the student's exact 'user_answer', and a 'band_8_version' which is a rewriting of their specific answer using advanced vocabulary, idioms, and complex grammar (Band 8.0+) while keeping their original meaning.`;
 
         const userPrompt = `Please evaluate this IELTS Part ${currentPart} performance:\n\n${conversationText}\n\nProvide scores from 0.0 to 9.0 (in 0.5 increments). Be highly critical of grammar, filler words, vocabulary usage, and short answers. Give specific examples from the transcript in your feedback.`;
 
@@ -520,7 +520,17 @@
                         lexical_feedback: { type: "STRING" },
                         grammar_feedback: { type: "STRING" },
                         pronunciation_feedback: { type: "STRING" },
-                        improved_versions: { type: "STRING" }
+                        improved_versions: { 
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    question: { type: "STRING" },
+                                    user_answer: { type: "STRING" },
+                                    band_8_version: { type: "STRING" }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -539,14 +549,22 @@
     }
 
     function showMockFeedback() {
-        // Generate mock improved versions based on ACTUAL user transcript
-        let mockImproved = sessionTranscripts.map((t, i) => {
+        // Generate mock improved versions based on ACTUAL user transcript structured as an Array
+        let mockImprovedVersions = sessionTranscripts.map((t) => {
             let userAns = t.answer === "(No audible response recorded)" ? "[No answer provided]" : t.answer;
-            return `Q${i+1} (${t.question})\nYour Answer: "${userAns}"\nBand 8.0+ Version: "To be completely honest, [this is where the AI will dynamically insert sophisticated vocabulary, idiomatic expressions, and complex grammar structures to elevate your original ideas...]"`;
-        }).join("\n\n");
+            return {
+                question: t.question,
+                user_answer: userAns,
+                band_8_version: `(Mock AI) Well, regarding "${t.question}", I would express it this way: [Enhanced vocabulary and grammar applied to: "${userAns}"]`
+            };
+        });
 
         if (sessionTranscripts.length === 0) {
-            mockImproved = "No answers were recorded to improve.";
+            mockImprovedVersions = [{
+                question: "No questions recorded",
+                user_answer: "None",
+                band_8_version: "None"
+            }];
         }
 
         const mockData = {
@@ -555,7 +573,7 @@
             lexical_feedback: "Your vocabulary is adequate for familiar topics but lacks less common/idiomatic expressions. You repeated certain basic words. Try to incorporate better collocations.",
             grammar_feedback: "You relied mostly on simple sentence structures. There were noticeable errors in subject-verb agreement and tense consistency. Practice using complex clauses (e.g., relative clauses, conditionals).",
             pronunciation_feedback: "Based on the transcript, there might be occasional mispronunciations or flat intonation that caused the recognition system to miss a few words. Focus on word stress and linking words.",
-            improved_versions: "(Note: This is a system mock. When the API key is connected, the AI will provide specific improvements based on your exact transcript below.)\n\n" + mockImproved
+            improved_versions: mockImprovedVersions
         };
         renderFeedback(mockData);
     }
@@ -575,7 +593,23 @@
         document.getElementById('fb-lexical').innerText = data.lexical_feedback;
         document.getElementById('fb-grammar').innerText = data.grammar_feedback;
         document.getElementById('fb-pronunciation').innerText = data.pronunciation_feedback;
-        document.getElementById('fb-improved').innerText = data.improved_versions;
+        
+        // Render Improved Versions Array
+        let improvedHTML = "";
+        if (Array.isArray(data.improved_versions)) {
+            data.improved_versions.forEach(item => {
+                improvedHTML += `
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+                        <strong>Q: ${item.question}</strong><br>
+                        <span style="color: #e74c3c;"><em>Your Answer:</em> ${item.user_answer}</span><br>
+                        <span style="color: #27ae60; display: inline-block; margin-top: 5px;"><strong>Band 8.0+ Version:</strong> ${item.band_8_version}</span>
+                    </div>
+                `;
+            });
+        } else {
+            improvedHTML = data.improved_versions;
+        }
+        document.getElementById('fb-improved').innerHTML = improvedHTML;
         
         // Append transcript to feedback for review
         let transcriptHTML = `<strong>Your Transcript Review:</strong><br><br>`;
