@@ -57,6 +57,10 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .browser-warning { background: #ffdddd; border-left: 5px solid #f44336; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; }
+        
+        /* API Key Section */
+        .api-setup { background: #f9f9f9; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; }
+        .api-setup input { padding: 10px; width: 80%; max-width: 400px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -70,9 +74,17 @@
         <div id="browser-warning" class="browser-warning hidden">
             <strong>Note:</strong> For Speech Recognition to work perfectly, please use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
         </div>
+        
         <div class="menu-grid">
             <button class="btn-primary full-width" onclick="showPracticeMenu()">PRACTICE MODE</button>
             <button class="btn-primary full-width" onclick="startMode('fulltest')">FULL TEST MODE (All Parts)</button>
+        </div>
+
+        <!-- API Setup for GitHub Hosting -->
+        <div class="api-setup">
+            <strong>[For GitHub Hosting]</strong><br>
+            <span style="font-size: 0.85rem; color: #555;">To get real AI feedback, please enter your Gemini API Key below. (Leave blank if running inside the Simulator Canvas)</span><br>
+            <input type="password" id="custom-api-key" placeholder="Enter Gemini API Key (AI Studio)...">
         </div>
     </div>
 
@@ -191,7 +203,7 @@
     // ==========================================
     // 2. SYSTEM STATE & AI CONFIG
     // ==========================================
-    const apiKey = ""; // Injected by execution environment
+    let envApiKey = ""; // Injected by execution environment internally
     let currentMode = ''; 
     let currentPart = 0;
     let questionsPool = [];
@@ -238,13 +250,18 @@
     
     function loadVoices() {
         const voices = synth.getVoices();
-        // Try to find a good British accent
         ukVoice = voices.find(v => v.name.includes('Google UK English Female')) || 
                   voices.find(v => v.lang === 'en-GB' && v.name.includes('Female')) || 
                   voices.find(v => v.lang === 'en-GB') || 
                   voices.find(v => v.lang.startsWith('en'));
     }
     synth.onvoiceschanged = loadVoices;
+
+    // Load saved API key from local storage if exists
+    window.onload = () => {
+        const savedKey = localStorage.getItem('user_gemini_api_key');
+        if (savedKey) document.getElementById('custom-api-key').value = savedKey;
+    };
 
     // ==========================================
     // 3. UI LOGIC
@@ -253,9 +270,11 @@
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('practice-menu').classList.remove('hidden');
         document.getElementById('global-back-btn').classList.remove('hidden');
+        saveApiKey();
     }
 
     function startMode(mode) {
+        saveApiKey();
         currentMode = mode;
         if(mode === 'fulltest') {
             currentPart = 1;
@@ -270,13 +289,19 @@
         startSession();
     }
 
+    function saveApiKey() {
+        const customKey = document.getElementById('custom-api-key').value.trim();
+        if(customKey) {
+            localStorage.setItem('user_gemini_api_key', customKey);
+        }
+    }
+
     function startSession() {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('test-area').style.display = 'block';
         document.getElementById('global-back-btn').classList.remove('hidden');
         document.getElementById('part-title').innerText = "PART " + currentPart;
         
-        // Reset state
         sessionTranscripts = [];
         currentQIndex = 0;
         prepareQuestions();
@@ -308,8 +333,6 @@
     // ==========================================
     // 4. FLOW HANDLers
     // ==========================================
-    
-    // --- Part 1 & 3: Audio Qs ---
     function startAudioQuestionFlow() {
         if(currentQIndex < questionsPool.length) {
             const q = questionsPool[currentQIndex];
@@ -328,7 +351,6 @@
 
     function replayQuestion() {
         if(questionsPool[currentQIndex]) {
-            // Speak the question again without restarting the phase or timer
             speak(questionsPool[currentQIndex]); 
         }
     }
@@ -337,7 +359,7 @@
         document.getElementById('status-msg').innerHTML = "<span class='recording-indicator'></span> Recording... Speak now!";
         document.getElementById('transcript-container').classList.remove('hidden');
         document.getElementById('next-q-btn').classList.remove('hidden');
-        document.getElementById('replay-btn').classList.remove('hidden'); // Show Listen Again button
+        document.getElementById('replay-btn').classList.remove('hidden');
         
         currentFinalTranscript = '';
         currentInterimTranscript = '';
@@ -345,7 +367,6 @@
         
         if(recognition) recognition.start();
         
-        // Auto timeout for safety: 45 secs for Part 1, 60 secs for Part 3
         const timeLimit = currentPart === 3 ? 60 : 45;
         startTimer(timeLimit, () => {
             if(document.getElementById('next-q-btn').classList.contains('hidden') === false) {
@@ -360,7 +381,6 @@
         
         document.getElementById('replay-btn').classList.add('hidden');
 
-        // Save transcript
         const ans = currentFinalTranscript.trim() || "(No audible response recorded)";
         sessionTranscripts.push({ question: questionsPool[currentQIndex], answer: ans });
 
@@ -372,11 +392,9 @@
         }
     }
 
-    // --- Part 2: Cue Card ---
     function startPart2Flow() {
         const display = document.getElementById('question-container');
         display.classList.remove('hidden');
-        // Format text keeping line breaks
         display.innerHTML = questionsPool[0].replace(/\n/g, '<br>');
         
         document.getElementById('status-msg').innerText = "PREPARATION TIME (1 MIN)";
@@ -391,7 +409,6 @@
                 
                 if(recognition) recognition.start();
                 
-                // Show early stop button
                 const nextBtn = document.getElementById('next-q-btn');
                 nextBtn.innerText = "Finish Speaking";
                 nextBtn.classList.remove('hidden');
@@ -416,15 +433,12 @@
     // ==========================================
     // 5. UTILS & AI FEEDBACK
     // ==========================================
-    
     function speak(text, callback) {
-        if(!ukVoice) loadVoices(); // try again if not loaded
+        if(!ukVoice) loadVoices(); 
         
         synth.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         if(ukVoice) utter.voice = ukVoice;
-        
-        // Changed reading rate from 0.9 to 0.75 for a slower, clearer pronunciation
         utter.rate = 0.75; 
         
         if (callback) {
@@ -460,7 +474,6 @@
         generateAIFeedback();
     }
 
-    // --- Gemini API Integration ---
     async function fetchWithRetry(url, payload, retries = 5) {
         let delay = 1000;
         for (let i = 0; i < retries; i++) {
@@ -481,12 +494,15 @@
     }
 
     async function generateAIFeedback() {
-        if (!apiKey) {
-            showMockFeedback(); // Fallback if no API key in environment
+        // GET API KEY: Prefer User's Input over Environment to support GitHub Pages
+        const customApiKey = document.getElementById('custom-api-key').value.trim();
+        const activeApiKey = customApiKey || envApiKey;
+
+        if (!activeApiKey) {
+            showMockFeedback(); // Fallback if NO key exists
             return;
         }
 
-        // Prepare Prompt
         let conversationText = sessionTranscripts.map((item, i) => 
             `Question ${i+1}: ${item.question}\nStudent's Answer: ${item.answer}`
         ).join("\n\n");
@@ -539,28 +555,22 @@
         };
 
         try {
-            const result = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, payload);
+            const result = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`, payload);
             const textResponse = result.candidates[0].content.parts[0].text;
             const data = JSON.parse(textResponse);
             
             renderFeedback(data);
         } catch (error) {
             console.error("AI Evaluation failed:", error);
-            showMockFeedback(); // Fallback on failure
+            showMockFeedback(); 
         }
     }
 
     function showMockFeedback() {
-        // Generate mock improved versions based on ACTUAL user transcript structured as an Array
+        // Clear message for users missing an API Key
         let mockImprovedVersions = sessionTranscripts.map((t) => {
             let userAns = t.answer === "(No audible response recorded)" ? "[No answer provided]" : t.answer;
-            let mockBand8Response = "";
-            
-            if (userAns !== "[No answer provided]" && userAns.length > 5) {
-                mockBand8Response = `To be completely honest, I'd have to say that... [Bản cải thiện mẫu mô phỏng từ ý gốc: "${userAns.substring(0, 30)}..."] It's not just about the basic aspects you mentioned, but rather the underlying significance. For instance, incorporating far more sophisticated terminology and ensuring a seamless flow between clauses would naturally elevate this to a much higher standard.`;
-            } else {
-                mockBand8Response = `Since you didn't provide a clear answer, a Band 8 candidate might approach this by saying: "Well, that's quite an interesting question. I suppose if I had to choose, I would definitely lean towards..." (and then expanding with a detailed, well-structured explanation).`;
-            }
+            let mockBand8Response = `⚠️ [OFFLINE MODE - NO API KEY DETECTED]\n\nĐể AI có thể tự động viết lại câu trả lời "${userAns}" của bạn bằng từ vựng Band 8.0+, bạn cần cung cấp API Key của Gemini ở màn hình chính (trang chủ) trước khi luyện tập.`;
 
             return {
                 question: t.question,
@@ -578,11 +588,11 @@
         }
 
         const mockData = {
-            fluency: 5.5, lexical: 6.0, grammar: 5.0, pronunciation: 5.5, overall: 5.5,
-            fluency_feedback: "You had noticeable hesitations and pauses while searching for words. Try to use discourse markers like 'Well', 'To be honest', or 'Actually' to buy time naturally instead of staying silent.",
-            lexical_feedback: "Your vocabulary is adequate for familiar topics but lacks less common/idiomatic expressions. You repeated certain basic words. Try to incorporate better collocations.",
-            grammar_feedback: "You relied mostly on simple sentence structures. There were noticeable errors in subject-verb agreement and tense consistency. Practice using complex clauses (e.g., relative clauses, conditionals).",
-            pronunciation_feedback: "Based on the transcript, there might be occasional mispronunciations or flat intonation that caused the recognition system to miss a few words. Focus on word stress and linking words.",
+            fluency: 0.0, lexical: 0.0, grammar: 0.0, pronunciation: 0.0, overall: 0.0,
+            fluency_feedback: "Hệ thống đang chạy ở chế độ OFFLINE vì không tìm thấy API Key.",
+            lexical_feedback: "Vui lòng nhập Gemini API Key ở trang chủ (chỗ '[For GitHub Hosting]') để kích hoạt chức năng chấm điểm bằng Trí tuệ nhân tạo.",
+            grammar_feedback: "Khóa API có thể lấy miễn phí từ trang Google AI Studio.",
+            pronunciation_feedback: "Tính năng nhận diện giọng nói vẫn hoạt động, nhưng tính năng AI chấm điểm đang bị vô hiệu hóa.",
             improved_versions: mockImprovedVersions
         };
         renderFeedback(mockData);
@@ -598,13 +608,11 @@
         document.getElementById('score-pronunciation').innerText = data.pronunciation.toFixed(1);
         document.getElementById('score-overall').innerText = data.overall.toFixed(1);
         
-        // Render detailed feedback
         document.getElementById('fb-fluency').innerText = data.fluency_feedback;
         document.getElementById('fb-lexical').innerText = data.lexical_feedback;
         document.getElementById('fb-grammar').innerText = data.grammar_feedback;
         document.getElementById('fb-pronunciation').innerText = data.pronunciation_feedback;
         
-        // Render Improved Versions Array
         let improvedHTML = "";
         if (Array.isArray(data.improved_versions)) {
             data.improved_versions.forEach(item => {
@@ -612,16 +620,13 @@
                     <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
                         <strong>Q: ${item.question}</strong><br>
                         <span style="color: #e74c3c; display: block; margin-top: 8px;"><em>Your Answer:</em> ${item.user_answer}</span>
-                        <span style="color: #27ae60; display: block; margin-top: 8px; background: rgba(39, 174, 96, 0.1); padding: 10px; border-radius: 5px;"><strong>Band 8.0+ Model Answer:</strong> ${item.band_8_version}</span>
+                        <span style="color: #27ae60; display: block; margin-top: 8px; background: rgba(39, 174, 96, 0.1); padding: 10px; border-radius: 5px; white-space: pre-wrap;"><strong>Band 8.0+ Model Answer:</strong>\n${item.band_8_version}</span>
                     </div>
                 `;
             });
-        } else {
-            improvedHTML = data.improved_versions;
         }
         document.getElementById('fb-improved').innerHTML = improvedHTML;
         
-        // Append transcript to feedback for review
         let transcriptHTML = `<strong>Your Transcript Review:</strong><br><br>`;
         sessionTranscripts.forEach((t, i) => {
             transcriptHTML += `<em>Q${i+1}: ${t.question}</em><br><span style="color:#555">A: ${t.answer}</span><br><br>`;
