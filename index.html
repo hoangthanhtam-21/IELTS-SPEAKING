@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IELTS Speaking Simulator - Offline Pro Version</title>
+    <!-- Nhúng file dữ liệu câu hỏi -->
+    <script src="questions.js"></script>
     <style>
         :root { --primary: #2c3e50; --accent: #e74c3c; --bg: #f4f7f6; --success: #27ae60; --text: #333; --warning: #f39c12; }
         * { box-sizing: border-box; }
@@ -70,8 +72,9 @@
         </div>
         
         <div class="menu-grid">
-            <button class="btn-primary full-width" onclick="showPracticeMenu()">PRACTICE MODE</button>
-            <button class="btn-primary full-width" onclick="startMode('fulltest')">FULL TEST MODE (All Parts)</button>
+            <button class="btn-primary full-width" onclick="showPracticeMenu()">PRACTICE MODE <br><small>(Luyện từng phần riêng biệt)</small></button>
+            <button class="btn-primary" onclick="showTopicMenu()">TOPIC MODE <br><small>(Thi 3 phần theo chủ đề)</small></button>
+            <button class="btn-primary" onclick="startMode('fulltest')">FULL TEST MODE <br><small>(Thi 3 phần ngẫu nhiên)</small></button>
         </div>
     </div>
 
@@ -83,6 +86,15 @@
             <button class="btn-primary" onclick="startPracticePart(1)">Part 1</button>
             <button class="btn-primary" onclick="startPracticePart(2)">Part 2</button>
             <button class="btn-primary full-width" onclick="startPracticePart(3)">Part 3</button>
+        </div>
+    </div>
+
+    <!-- TOPIC MENU -->
+    <div id="topic-menu" class="hidden">
+        <h2>Topic Mode</h2>
+        <p style="text-align:center">Select a topic to take a full 3-part test on this subject.</p>
+        <div class="menu-grid" id="topic-btn-grid">
+            <!-- Buttons will be injected here by JS based on questions.js -->
         </div>
     </div>
 
@@ -147,7 +159,7 @@
             
             <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                 <button id="continue-test-btn" class="btn-action hidden" onclick="continueFullTest()">Continue to Next Part →</button>
-                <button id="retake-test-btn" class="btn-change hidden" onclick="retakeFullTest()">Retake Full Test 🔄</button>
+                <button id="retake-test-btn" class="btn-change hidden" onclick="retakeFullTest()">Retake Test 🔄</button>
                 <button class="btn-primary" onclick="location.reload()">Finish & Return Home</button>
             </div>
         </div>
@@ -156,43 +168,7 @@
 
 <script>
     // ==========================================
-    // 1. DATA SECTION
-    // ==========================================
-    const ieltsData = {
-        part1: [
-            { topic: "HOMES", questions: ["Do you live in a house or an apartment?", "Which is your favourite room in your home? Why?", "Would you change anything about your home? Why / why not?", "What do you think makes a house feel like a home?", "Would you like to move to a different home in the future?"] },
-            { topic: "SPORTS", questions: ["Do you like playing sports?", "Do you think doing sports is a good way to relax?", "What sports are popular in your country?", "Do you think it is important to play a sport?"] },
-            { topic: "NEWS AND MEDIA", questions: ["Do you often read the news?", "Where do you usually get the news from?", "What kind of news do you usually follow?", "In which kinds of circumstances do you usually listen to the radio?", "Do you prefer reading online news or in newspapers?", "What are the most credible media sources in your country?"] },
-            { topic: "TRAVELS AND TRANSPORTATION", questions: ["How do you go to work or school?", "What's the most popular means of transportation in your hometown?", "Do you think people will drive more in the future?", "How often do you take buses?", "Can you compare the advantages of planes and trains?", "What form of transport do you prefer to use? Why?", "What type of public transport can be found in your city?", "Would you ride bikes to work in the future?", "Where do you like to go on your vacation/holiday?"] }
-        ],
-        part2: [
-            { topic: "HOMES", questions: [
-                "Describe a house or apartment you would like to live in in the future.\n\nYou should say:\n- Where it is\n- What kind of accommodation it is\n- What it is like\n- And how you feel about this dream house/apartment."
-            ]},
-            { topic: "SPORTS", questions: [
-                "Describe your favourite sport.\n\nYou should say:\n- What sport it is\n- How often you play it or watch it\n- How you play it\n- And explain why this is your favourite sport.",
-                "Describe a live sport event you watched before.\n\nYou should say:\n- When it happened\n- Where it took place\n- Who you watched it with\n- And explain how you felt about this experience.",
-                "Describe a sportsperson you admire.\n\nYou should say:\n- Who the person is\n- What sport he or she does\n- When did you first hear about this person\n- And why you admire him or her."
-            ]},
-            { topic: "NEWS AND MEDIA", questions: [
-                "Describe a newspaper or magazine you enjoy reading.\n\nYou should say:\n- What newspaper/ magazine it is\n- What the newspaper/ magazine is about\n- How often you read it\n- What kinds of people generally read this newspaper/ magazine\nAnd explain why you like to read it.",
-                "Describe a piece of local news about which people were very excited.\n\nYou should say:\n- What it was about?\n- Where you saw/heard it?\n- Who was involved?\n- And explain why people were interested in it?"
-            ]},
-            { topic: "TRAVEL AND TRANSPORTATION", questions: [
-                "Describe a time you travelled by public transport.\n\nYou should say:\n- What means of transportation is it?\n- When and where did you travel?\n- How did you feel about the experience.",
-                "Describe a recent vacation that you went on.\n\nYou should say:\n- Where and when did you go?\n- What did you do there?\n- How did you feel about it?"
-            ]}
-        ],
-        part3: [
-            { topic: "HOMES", questions: ["Do you think homes will look different in the future?", "How easy is it to find a place to live in your country?", "Do you think it’s better to rent or to buy a place to live in?", "Do you agree that there is a right age for young adults to stop living with their parents?", "What factors will contribute to whether a place is good to live in or not?"] },
-            { topic: "SPORTS", questions: ["Do you think that competitive sports are damaging for children?", "What characteristics do you think an athlete should have?", "Why are there so few top athletes?", "What’s the best way to become a top athlete?"] },
-            { topic: "NEWS AND MEDIA", questions: ["What kind of news do teenagers like to read? How about the old?", "What's the difference between news on TV and news on the internet?", "How has technology changed the way people get information?"] },
-            { topic: "TRAVEL AND TRANSPORTATION", questions: ["How do you think people will travel in the future?", "How to encourage more people to take public transportation?", "Which mode of transportation do you believe to be the safest? Why?", "Should a nation’s government prioritize road or rail transportation more? Why?", "What factors do people have to consider before a trip?"] }
-        ]
-    };
-
-    // ==========================================
-    // 2. SYSTEM STATE & SPEECH CONFIG
+    // 1. SYSTEM STATE & SPEECH CONFIG
     // ==========================================
     let currentMode = ''; 
     let currentPart = 0;
@@ -200,6 +176,7 @@
     let currentQIndex = 0;
     let sessionTranscripts = []; 
     let selectedPart2Topic = '';
+    let selectedTopicForMode = ''; // Dành riêng cho Topic Mode
     let timerInterval;
 
     // Speech Recognition Setup
@@ -246,7 +223,7 @@
     synth.onvoiceschanged = loadVoices;
 
     // ==========================================
-    // 3. UTILS & SCRAMBLE LOGIC
+    // 2. UTILS & SCRAMBLE LOGIC
     // ==========================================
     // Fisher-Yates Shuffle Algorithm for true randomness
     function shuffleArray(array) {
@@ -259,13 +236,63 @@
         return array;
     }
 
+    // Hàm phát âm thanh khi hết giờ (Tiếng Beep kép)
+    function playTimeUpSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            
+            function beep(freq, time, duration) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.5, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(time);
+                osc.stop(time + duration);
+            }
+            
+            beep(600, ctx.currentTime, 0.2);
+            beep(600, ctx.currentTime + 0.3, 0.4);
+        } catch(e) {
+            console.error("Audio API not supported", e);
+        }
+    }
+
     // ==========================================
-    // 4. UI LOGIC
+    // 3. UI LOGIC
     // ==========================================
     function showPracticeMenu() {
         document.getElementById('main-menu').classList.add('hidden');
         document.getElementById('practice-menu').classList.remove('hidden');
         document.getElementById('global-back-btn').classList.remove('hidden');
+    }
+
+    function showTopicMenu() {
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('topic-menu').classList.remove('hidden');
+        document.getElementById('global-back-btn').classList.remove('hidden');
+
+        // Tạo nút bấm cho các chủ đề tự động từ biến ieltsData (trong questions.js)
+        const topicGrid = document.getElementById('topic-btn-grid');
+        topicGrid.innerHTML = '';
+        
+        if (typeof ieltsData !== 'undefined') {
+            const topics = ieltsData.part1.map(t => t.topic); 
+            topics.forEach(topic => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-primary';
+                btn.innerText = topic;
+                btn.onclick = () => startTopicMode(topic);
+                topicGrid.appendChild(btn);
+            });
+        } else {
+            topicGrid.innerHTML = '<p style="color:red; grid-column: span 2;">Error: questions.js not loaded. Please make sure the file exists.</p>';
+        }
     }
 
     function startMode(mode) {
@@ -283,8 +310,23 @@
         startSession();
     }
 
+    function startTopicMode(topicName) {
+        currentMode = 'topic';
+        selectedTopicForMode = topicName;
+        currentPart = 1;
+        document.getElementById('topic-menu').classList.add('hidden');
+        startSession();
+    }
+
     function startSession() {
+        if (typeof ieltsData === 'undefined') {
+            alert("Questions data is missing. Please ensure questions.js is properly loaded.");
+            return;
+        }
+
         document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('practice-menu').classList.add('hidden');
+        document.getElementById('topic-menu').classList.add('hidden');
         document.getElementById('test-area').style.display = 'block';
         document.getElementById('global-back-btn').classList.remove('hidden');
         document.getElementById('part-title').innerText = "PART " + currentPart;
@@ -305,26 +347,43 @@
     }
 
     function prepareQuestions() {
-        if (currentPart === 1) {
-            // Scramble all topics, pick 4. Then pick 1 random question from each topic.
-            let shuffledTopics = shuffleArray([...ieltsData.part1]);
-            questionsPool = shuffledTopics.slice(0, 4).map(t => {
-                let shuffledQs = shuffleArray([...t.questions]);
-                return shuffledQs[0];
-            });
-        } 
-        else if (currentPart === 2) {
-            let shuffledP2 = shuffleArray([...ieltsData.part2]);
-            selectedPart2Topic = shuffledP2[0].topic;
-            let shuffledQs = shuffleArray([...shuffledP2[0].questions]);
-            questionsPool = [shuffledQs[0]];
+        if (currentMode === 'topic') {
+            // Lấy câu hỏi chỉ thuộc về chủ đề đã chọn
+            if (currentPart === 1) {
+                let topicObj = ieltsData.part1.find(t => t.topic === selectedTopicForMode);
+                let shuffledQs = shuffleArray([...topicObj.questions]);
+                questionsPool = shuffledQs.slice(0, 4);
+            } else if (currentPart === 2) {
+                let topicObj = ieltsData.part2.find(t => t.topic === selectedTopicForMode);
+                let shuffledQs = shuffleArray([...topicObj.questions]);
+                questionsPool = [shuffledQs[0]];
+            } else if (currentPart === 3) {
+                let topicObj = ieltsData.part3.find(t => t.topic === selectedTopicForMode);
+                let shuffledQs = shuffleArray([...topicObj.questions]);
+                questionsPool = shuffledQs.slice(0, 3);
+            }
         } 
         else {
-            let topicName = (currentMode === 'fulltest' && selectedPart2Topic) ? selectedPart2Topic : shuffleArray([...ieltsData.part3])[0].topic;
-            let topicObj = ieltsData.part3.find(t => t.topic === topicName) || ieltsData.part3[0];
-            
-            let shuffledQs = shuffleArray([...topicObj.questions]);
-            questionsPool = shuffledQs.slice(0, 3);
+            // Chế độ Practice / Full Test thông thường (Xáo trộn các chủ đề)
+            if (currentPart === 1) {
+                let shuffledTopics = shuffleArray([...ieltsData.part1]);
+                questionsPool = shuffledTopics.slice(0, 4).map(t => {
+                    let shuffledQs = shuffleArray([...t.questions]);
+                    return shuffledQs[0];
+                });
+            } 
+            else if (currentPart === 2) {
+                let shuffledP2 = shuffleArray([...ieltsData.part2]);
+                selectedPart2Topic = shuffledP2[0].topic;
+                let shuffledQs = shuffleArray([...shuffledP2[0].questions]);
+                questionsPool = [shuffledQs[0]];
+            } 
+            else {
+                let topicName = (currentMode === 'fulltest' && selectedPart2Topic) ? selectedPart2Topic : shuffleArray([...ieltsData.part3])[0].topic;
+                let topicObj = ieltsData.part3.find(t => t.topic === topicName) || ieltsData.part3[0];
+                let shuffledQs = shuffleArray([...topicObj.questions]);
+                questionsPool = shuffledQs.slice(0, 3);
+            }
         }
     }
 
@@ -343,33 +402,49 @@
         synth.cancel();
 
         if (currentPart === 2) {
-            // Pick a different topic for Part 2
-            let availableTopics = ieltsData.part2.filter(t => t.topic !== selectedPart2Topic);
-            if (availableTopics.length === 0) availableTopics = ieltsData.part2;
-            let newTopicObj = availableTopics[Math.floor(Math.random() * availableTopics.length)];
-            
-            selectedPart2Topic = newTopicObj.topic;
-            let shuffledQs = shuffleArray([...newTopicObj.questions]);
-            questionsPool[0] = shuffledQs[0];
-            
-            // Restart P2 Flow
+            if (currentMode === 'topic') {
+                // Topic mode: Đổi câu hỏi nhưng vẫn trong chủ đề đó
+                let topicObj = ieltsData.part2.find(t => t.topic === selectedTopicForMode);
+                let availableQs = shuffleArray(topicObj.questions.filter(q => q !== questionsPool[0]));
+                if (availableQs.length > 0) {
+                    questionsPool[0] = availableQs[0];
+                } else {
+                    alert("This topic currently has only one Part 2 cue card.");
+                }
+            } else {
+                // Các mode khác: Đổi sang chủ đề khác
+                let availableTopics = ieltsData.part2.filter(t => t.topic !== selectedPart2Topic);
+                if (availableTopics.length === 0) availableTopics = ieltsData.part2;
+                let newTopicObj = availableTopics[Math.floor(Math.random() * availableTopics.length)];
+                
+                selectedPart2Topic = newTopicObj.topic;
+                let shuffledQs = shuffleArray([...newTopicObj.questions]);
+                questionsPool[0] = shuffledQs[0];
+            }
             startPart2Flow();
         } else {
-            // Part 1 or 3
+            // Đổi câu hỏi cho Part 1 hoặc 3
             let currentQ = questionsPool[currentQIndex];
             let newQ = "";
 
-            if (currentPart === 1) {
-                // Find a random question from any topic that is not the current one and not in the pool
-                let allQs = [];
-                ieltsData.part1.forEach(t => allQs = allQs.concat(t.questions));
-                let availableQs = shuffleArray(allQs.filter(q => q !== currentQ && !questionsPool.includes(q)));
-                newQ = availableQs[0] || allQs[0];
-            } else {
-                // Part 3: Keep same topic, but different question
-                let topicObj = ieltsData.part3.find(t => t.topic === (selectedPart2Topic || ieltsData.part3[0].topic));
+            if (currentMode === 'topic') {
+                let topicObj = currentPart === 1 
+                    ? ieltsData.part1.find(t => t.topic === selectedTopicForMode)
+                    : ieltsData.part3.find(t => t.topic === selectedTopicForMode);
+                
                 let availableQs = shuffleArray(topicObj.questions.filter(q => q !== currentQ && !questionsPool.includes(q)));
-                newQ = availableQs[0] || topicObj.questions[0];
+                newQ = availableQs[0] || currentQ; // Fallback nếu hết câu hỏi
+            } else {
+                if (currentPart === 1) {
+                    let allQs = [];
+                    ieltsData.part1.forEach(t => allQs = allQs.concat(t.questions));
+                    let availableQs = shuffleArray(allQs.filter(q => q !== currentQ && !questionsPool.includes(q)));
+                    newQ = availableQs[0] || allQs[0];
+                } else {
+                    let topicObj = ieltsData.part3.find(t => t.topic === (selectedPart2Topic || ieltsData.part3[0].topic));
+                    let availableQs = shuffleArray(topicObj.questions.filter(q => q !== currentQ && !questionsPool.includes(q)));
+                    newQ = availableQs[0] || topicObj.questions[0];
+                }
             }
 
             questionsPool[currentQIndex] = newQ;
@@ -378,7 +453,7 @@
     }
 
     // ==========================================
-    // 5. FLOW HANDLers
+    // 4. FLOW HANDLERS
     // ==========================================
     function startAudioQuestionFlow() {
         if(currentQIndex < questionsPool.length) {
@@ -407,7 +482,6 @@
         document.getElementById('status-msg').innerHTML = "<span class='recording-indicator'></span> Recording... Speak now!";
         document.getElementById('transcript-container').classList.remove('hidden');
         
-        // Khôi phục lại nút Next Question (tránh lỗi kẹt chức năng từ Part 2)
         const nextBtn = document.getElementById('next-q-btn');
         nextBtn.innerText = "Next Question →";
         nextBtn.onclick = nextQuestion;
@@ -458,7 +532,7 @@
         document.getElementById('status-msg').innerText = "PREPARATION TIME (1 MIN)";
         
         startTimer(60, () => {
-            document.getElementById('change-q-btn').classList.add('hidden'); // Cannot change Q once speaking starts
+            document.getElementById('change-q-btn').classList.add('hidden'); 
             speak("Your preparation time is up. Please speak for one to two minutes.", () => {
                 document.getElementById('status-msg').innerHTML = "<span class='recording-indicator'></span> SPEAKING TIME (2 MINS)";
                 document.getElementById('transcript-container').classList.remove('hidden');
@@ -491,36 +565,8 @@
     }
 
     // ==========================================
-    // 6. UTILS & DYNAMIC FEEDBACK
+    // 5. UTILS & DYNAMIC FEEDBACK
     // ==========================================
-    
-    // Hàm phát âm thanh khi hết giờ (Tiếng Beep kép)
-    function playTimeUpSound() {
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const ctx = new AudioContext();
-            
-            function beep(freq, time, duration) {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.5, time);
-                gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(time);
-                osc.stop(time + duration);
-            }
-            
-            beep(600, ctx.currentTime, 0.2);
-            beep(600, ctx.currentTime + 0.3, 0.4);
-        } catch(e) {
-            console.error("Audio API not supported", e);
-        }
-    }
-
     function speak(text, callback) {
         if(!ukVoice) loadVoices(); 
         synth.cancel();
@@ -629,11 +675,12 @@
         document.getElementById('continue-test-btn').classList.add('hidden');
         document.getElementById('retake-test-btn').classList.add('hidden');
 
-        if (currentMode === 'fulltest') {
+        if (currentMode === 'fulltest' || currentMode === 'topic') {
             if (currentPart < 3) {
                 document.getElementById('continue-test-btn').classList.remove('hidden');
             } else {
                 document.getElementById('retake-test-btn').classList.remove('hidden');
+                document.getElementById('retake-test-btn').innerText = currentMode === 'topic' ? "Retake Topic Test 🔄" : "Retake Full Test 🔄";
             }
         }
     }
