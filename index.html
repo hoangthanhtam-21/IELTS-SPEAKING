@@ -176,7 +176,7 @@
     let currentQIndex = 0;
     let sessionTranscripts = []; 
     let selectedPart2Topic = '';
-    let selectedTopicForMode = ''; // Dành riêng cho Topic Mode
+    let selectedTopicForMode = ''; 
     let timerInterval;
 
     // Speech Recognition Setup
@@ -223,9 +223,9 @@
     synth.onvoiceschanged = loadVoices;
 
     // ==========================================
-    // 2. UTILS & SCRAMBLE LOGIC
+    // 2. UTILS & SMART SCRAMBLE LOGIC (BAG SYSTEM)
     // ==========================================
-    // Fisher-Yates Shuffle Algorithm for true randomness
+    // Thuật toán xáo trộn Fisher-Yates
     function shuffleArray(array) {
         let currentIndex = array.length, randomIndex;
         while (currentIndex !== 0) {
@@ -236,7 +236,31 @@
         return array;
     }
 
-    // Hàm phát âm thanh khi hết giờ (Tiếng Beep kép)
+    // "Bag System" (Hộp chứa thẻ bài) - Đảm bảo đi hết 100% dữ liệu trước khi lặp lại
+    let deckTopics = { 1: [], 2: [], 3: [] };
+    let deckQs = { 1: {}, 2: {}, 3: {} };
+
+    function getNextTopic(part) {
+        if (deckTopics[part].length === 0) {
+            deckTopics[part] = shuffleArray(ieltsData['part' + part].map(t => t.topic));
+        }
+        return deckTopics[part].pop();
+    }
+
+    function getNextQuestion(part, topicName) {
+        if (!deckQs[part]) deckQs[part] = {};
+        if (!deckQs[part][topicName] || deckQs[part][topicName].length === 0) {
+            let topicData = ieltsData['part' + part].find(t => t.topic === topicName);
+            if (topicData) {
+                deckQs[part][topicName] = shuffleArray([...topicData.questions]);
+            } else {
+                return ""; // fallback error prevention
+            }
+        }
+        return deckQs[part][topicName].pop();
+    }
+
+    // Phát âm thanh khi hết giờ (Tiếng Beep kép)
     function playTimeUpSound() {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -277,7 +301,7 @@
         document.getElementById('topic-menu').classList.remove('hidden');
         document.getElementById('global-back-btn').classList.remove('hidden');
 
-        // Tạo nút bấm cho các chủ đề tự động từ biến ieltsData (trong questions.js)
+        // Tạo nút bấm cho các chủ đề tự động
         const topicGrid = document.getElementById('topic-btn-grid');
         topicGrid.innerHTML = '';
         
@@ -291,7 +315,7 @@
                 topicGrid.appendChild(btn);
             });
         } else {
-            topicGrid.innerHTML = '<p style="color:red; grid-column: span 2;">Error: questions.js not loaded. Please make sure the file exists.</p>';
+            topicGrid.innerHTML = '<p style="color:red; grid-column: span 2;">Error: questions.js not loaded.</p>';
         }
     }
 
@@ -331,7 +355,7 @@
         document.getElementById('global-back-btn').classList.remove('hidden');
         document.getElementById('part-title').innerText = "PART " + currentPart;
         
-        // Reset UI Components for the new Session
+        // Reset UI Components
         document.getElementById('action-btn').classList.remove('hidden');
         document.getElementById('next-q-btn').classList.add('hidden');
         document.getElementById('replay-btn').classList.add('hidden');
@@ -347,42 +371,38 @@
     }
 
     function prepareQuestions() {
+        questionsPool = [];
         if (currentMode === 'topic') {
-            // Lấy câu hỏi chỉ thuộc về chủ đề đã chọn
             if (currentPart === 1) {
-                let topicObj = ieltsData.part1.find(t => t.topic === selectedTopicForMode);
-                let shuffledQs = shuffleArray([...topicObj.questions]);
-                questionsPool = shuffledQs.slice(0, 4);
+                for(let i = 0; i < 4; i++) questionsPool.push(getNextQuestion(1, selectedTopicForMode));
             } else if (currentPart === 2) {
-                let topicObj = ieltsData.part2.find(t => t.topic === selectedTopicForMode);
-                let shuffledQs = shuffleArray([...topicObj.questions]);
-                questionsPool = [shuffledQs[0]];
+                questionsPool.push(getNextQuestion(2, selectedTopicForMode));
             } else if (currentPart === 3) {
-                let topicObj = ieltsData.part3.find(t => t.topic === selectedTopicForMode);
-                let shuffledQs = shuffleArray([...topicObj.questions]);
-                questionsPool = shuffledQs.slice(0, 3);
+                for(let i = 0; i < 3; i++) questionsPool.push(getNextQuestion(3, selectedTopicForMode));
             }
         } 
         else {
-            // Chế độ Practice / Full Test thông thường (Xáo trộn các chủ đề)
             if (currentPart === 1) {
-                let shuffledTopics = shuffleArray([...ieltsData.part1]);
-                questionsPool = shuffledTopics.slice(0, 4).map(t => {
-                    let shuffledQs = shuffleArray([...t.questions]);
-                    return shuffledQs[0];
-                });
+                // Bốc 4 chủ đề và 4 câu khác nhau hoàn toàn
+                let chosenTopicsForP1 = [];
+                for(let i = 0; i < 4; i++) {
+                    let t = getNextTopic(1);
+                    // Đảm bảo không trùng chủ đề trong 1 lần bốc Part 1 (nếu ngân hàng đủ lớn)
+                    while(chosenTopicsForP1.includes(t) && ieltsData.part1.length >= 4) {
+                        deckTopics[1].unshift(t); // Đẩy xuống cuối hộp
+                        t = getNextTopic(1);
+                    }
+                    chosenTopicsForP1.push(t);
+                    questionsPool.push(getNextQuestion(1, t));
+                }
             } 
             else if (currentPart === 2) {
-                let shuffledP2 = shuffleArray([...ieltsData.part2]);
-                selectedPart2Topic = shuffledP2[0].topic;
-                let shuffledQs = shuffleArray([...shuffledP2[0].questions]);
-                questionsPool = [shuffledQs[0]];
+                selectedPart2Topic = getNextTopic(2);
+                questionsPool.push(getNextQuestion(2, selectedPart2Topic));
             } 
             else {
-                let topicName = (currentMode === 'fulltest' && selectedPart2Topic) ? selectedPart2Topic : shuffleArray([...ieltsData.part3])[0].topic;
-                let topicObj = ieltsData.part3.find(t => t.topic === topicName) || ieltsData.part3[0];
-                let shuffledQs = shuffleArray([...topicObj.questions]);
-                questionsPool = shuffledQs.slice(0, 3);
+                let topicName = (currentMode === 'fulltest' && selectedPart2Topic) ? selectedPart2Topic : getNextTopic(3);
+                for(let i = 0; i < 3; i++) questionsPool.push(getNextQuestion(3, topicName));
             }
         }
     }
@@ -403,51 +423,29 @@
 
         if (currentPart === 2) {
             if (currentMode === 'topic') {
-                // Topic mode: Đổi câu hỏi nhưng vẫn trong chủ đề đó
-                let topicObj = ieltsData.part2.find(t => t.topic === selectedTopicForMode);
-                let availableQs = shuffleArray(topicObj.questions.filter(q => q !== questionsPool[0]));
-                if (availableQs.length > 0) {
-                    questionsPool[0] = availableQs[0];
-                } else {
-                    alert("This topic currently has only one Part 2 cue card.");
-                }
+                questionsPool[0] = getNextQuestion(2, selectedTopicForMode);
             } else {
-                // Các mode khác: Đổi sang chủ đề khác
-                let availableTopics = ieltsData.part2.filter(t => t.topic !== selectedPart2Topic);
-                if (availableTopics.length === 0) availableTopics = ieltsData.part2;
-                let newTopicObj = availableTopics[Math.floor(Math.random() * availableTopics.length)];
-                
-                selectedPart2Topic = newTopicObj.topic;
-                let shuffledQs = shuffleArray([...newTopicObj.questions]);
-                questionsPool[0] = shuffledQs[0];
+                let oldTopic = selectedPart2Topic;
+                selectedPart2Topic = getNextTopic(2);
+                // Cố gắng không bốc lại ngay chủ đề vừa skip
+                if (selectedPart2Topic === oldTopic && ieltsData.part2.length > 1) {
+                    deckTopics[2].unshift(selectedPart2Topic);
+                    selectedPart2Topic = getNextTopic(2);
+                }
+                questionsPool[0] = getNextQuestion(2, selectedPart2Topic);
             }
             startPart2Flow();
         } else {
-            // Đổi câu hỏi cho Part 1 hoặc 3
-            let currentQ = questionsPool[currentQIndex];
-            let newQ = "";
-
             if (currentMode === 'topic') {
-                let topicObj = currentPart === 1 
-                    ? ieltsData.part1.find(t => t.topic === selectedTopicForMode)
-                    : ieltsData.part3.find(t => t.topic === selectedTopicForMode);
-                
-                let availableQs = shuffleArray(topicObj.questions.filter(q => q !== currentQ && !questionsPool.includes(q)));
-                newQ = availableQs[0] || currentQ; // Fallback nếu hết câu hỏi
+                questionsPool[currentQIndex] = getNextQuestion(currentPart, selectedTopicForMode);
             } else {
                 if (currentPart === 1) {
-                    let allQs = [];
-                    ieltsData.part1.forEach(t => allQs = allQs.concat(t.questions));
-                    let availableQs = shuffleArray(allQs.filter(q => q !== currentQ && !questionsPool.includes(q)));
-                    newQ = availableQs[0] || allQs[0];
+                    questionsPool[currentQIndex] = getNextQuestion(1, getNextTopic(1));
                 } else {
-                    let topicObj = ieltsData.part3.find(t => t.topic === (selectedPart2Topic || ieltsData.part3[0].topic));
-                    let availableQs = shuffleArray(topicObj.questions.filter(q => q !== currentQ && !questionsPool.includes(q)));
-                    newQ = availableQs[0] || topicObj.questions[0];
+                    let topicName = (currentMode === 'fulltest' && selectedPart2Topic) ? selectedPart2Topic : getNextTopic(3);
+                    questionsPool[currentQIndex] = getNextQuestion(3, topicName);
                 }
             }
-
-            questionsPool[currentQIndex] = newQ;
             startAudioQuestionFlow();
         }
     }
