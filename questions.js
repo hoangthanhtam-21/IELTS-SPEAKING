@@ -3,8 +3,13 @@ const ieltsData = {
         { topic: "HOMES", questions: ["Do you live in a house or an apartment?", "Which is your favourite room in your home? Why?", "Would you change anything about your home? Why / why not?", "What do you think makes a house feel like a home?", "Would you like to move to a different home in the future?"] },
         { topic: "SPORTS", questions: ["Do you like playing sports?", "Do you think doing sports is a good way to relax?", "What sports are popular in your country?", "Do you think it is important to play a sport?"] },
         { topic: "NEWS AND MEDIA", questions: ["Do you often read the news?", "Where do you usually get the news from?", "What kind of news do you usually follow?", "In which kinds of circumstances do you usually listen to the radio?", "Do you prefer reading online news or in newspapers?", "What are the most credible media sources in your country?"] },
-        { topic: "TRAVELS AND TRANSPORTATION", questions: ["How do you go to work or school?", "What's the most popular means of transportation in your hometown?", "Do you think people will drive more in the future?", "How often do you take buses?", "Can you compare the advantages of planes and trains?", "What form of transport do you prefer to use? Why?", "What type of public transport can be found in your city?", "Would you ride bikes to work in the future?", "Where do you like to go on your vacation/holiday?"] },
-        { topic: "NATURAL WORLD", questions: ["What are some well-known natural attractions in your country?", "What is your favourite kind of weather?", "Do you like visiting natural places?", "What causes environmental problems?", "Would you like to work in a company related to environmental protection?", "Are there any environmental problems in your country?"] }
+        { topic: "TRAVEL AND TRANSPORTATION", questions: ["How do you go to work or school?", "What's the most popular means of transportation in your hometown?", "Do you think people will drive more in the future?", "How often do you take buses?", "Can you compare the advantages of planes and trains?", "What form of transport do you prefer to use? Why?", "What type of public transport can be found in your city?", "Would you ride bikes to work in the future?", "Where do you like to go on your vacation/holiday?"] },
+        { topic: "NATURAL WORLD", questions: ["What are some well-known natural attractions in your country?", "What is your favourite kind of weather?", "Do you like visiting natural places?", "What causes environmental problems?", "Would you like to work in a company related to environmental protection?", "Are there any environmental problems in your country?"] },
+        { topic: "EDUCATION", questions: [
+            "Do you enjoy studying? Why or why not?", 
+            "What subject did you find most interesting in school?", 
+            "How do you usually prepare for exams or tests?"
+        ] }
     ],
     part2: [
         { topic: "HOMES", questions: [
@@ -24,7 +29,10 @@ const ieltsData = {
             "Describe a recent vacation that you went on.\n\nYou should say:\n- Where and when did you go?\n- What did you do there?\n- How did you feel about it?"
         ]},
         { topic: "NATURAL WORLD", questions: [
-            "Describe a memorable visit to a park or the countryside\n\nYou should say:\n- Where it was\n- Who you went with\n- What did you there\n- And explain what made the stay memorable."
+            "Describe a memorable visit to a park or the countryside.\n\nYou should say:\n- Where it was\n- Who you went with\n- What did you there\n- And explain what made the stay memorable."
+        ]},
+        { topic: "EDUCATION", questions: [
+            "Describe a person you have met who you want to work/study with.\n\nYou should say:\n- Who this person is\n- How you met this person\n- How long you have known him/her\n- And explain why you want to work/study with him/her."
         ]}
     ],
     part3: [
@@ -32,6 +40,16 @@ const ieltsData = {
         { topic: "SPORTS", questions: ["Do you think that competitive sports are damaging for children?", "What characteristics do you think an athlete should have?", "Why are there so few top athletes?", "What’s the best way to become a top athlete?"] },
         { topic: "NEWS AND MEDIA", questions: ["What kind of news do teenagers like to read? How about the old?", "What's the difference between news on TV and news on the internet?", "How has technology changed the way people get information?"] },
         { topic: "TRAVEL AND TRANSPORTATION", questions: ["How do you think people will travel in the future?", "How to encourage more people to take public transportation?", "Which mode of transportation do you believe to be the safest? Why?", "Should a nation’s government prioritize road or rail transportation more? Why?", "What factors do people have to consider before a trip?"] },
-        { topic: "NATURAL WORLD", questions: ["What is the importance of nature in human life?", "Has society’s attitude to nature changed over the years?", "Do you believe that humanity will be able to coexist with nature peacefully in the future?"] }
+        { topic: "NATURAL WORLD", questions: ["What is the importance of nature in human life?", "Has society’s attitude to nature changed over the years?", "Do you believe that humanity will be able to coexist with nature peacefully in the future?"] },
+        { topic: "EDUCATION", questions: [
+            "Which do you think is more important, practical skills or academic skills?", 
+            "How has education changed in your country over the past decades?", 
+            "What’s the difference between the roles of teachers and parents in education?", 
+            "What are the differences between online and face-to-face teaching?", 
+            "What skills should children learn before school?", 
+            "How do you think this peer pressure affects students' learning?", 
+            "What are the benefits of attending a top-tier educational institution, and what challenges might students face there?", 
+            "How do scholarship opportunities impact students' educational experiences?"
+        ] }
     ]
 };
