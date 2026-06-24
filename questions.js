@@ -5,10 +5,13 @@ const ieltsData = {
         { topic: "NEWS AND MEDIA", questions: ["Do you often read the news?", "Where do you usually get the news from?", "What kind of news do you usually follow?", "In which kinds of circumstances do you usually listen to the radio?", "Do you prefer reading online news or in newspapers?", "What are the most credible media sources in your country?"] },
         { topic: "TRAVEL AND TRANSPORTATION", questions: ["How do you go to work or school?", "What's the most popular means of transportation in your hometown?", "Do you think people will drive more in the future?", "How often do you take buses?", "Can you compare the advantages of planes and trains?", "What form of transport do you prefer to use? Why?", "What type of public transport can be found in your city?", "Would you ride bikes to work in the future?", "Where do you like to go on your vacation/holiday?"] },
         { topic: "NATURAL WORLD", questions: ["What are some well-known natural attractions in your country?", "What is your favourite kind of weather?", "Do you like visiting natural places?", "What causes environmental problems?", "Would you like to work in a company related to environmental protection?", "Are there any environmental problems in your country?"] },
-        { topic: "EDUCATION", questions: [
-            "Do you enjoy studying? Why or why not?", 
-            "What subject did you find most interesting in school?", 
-            "How do you usually prepare for exams or tests?"
+        { topic: "EDUCATION", questions: ["Do you enjoy studying? Why or why not?", "What subject did you find most interesting in school?", "How do you usually prepare for exams or tests?"] },
+        { topic: "FESTIVALS AND TRADITIONS", questions: [
+            "What’s your favorite holiday?", 
+            "How do you celebrate festivals in your country?", 
+            "Do you like to wear traditional costumes?", 
+            "Did you try any traditional costumes when you were young?", 
+            "What are some forms of traditional dancing in your country?"
         ] }
     ],
     part2: [
@@ -33,6 +36,10 @@ const ieltsData = {
         ]},
         { topic: "EDUCATION", questions: [
             "Describe a person you have met who you want to work/study with.\n\nYou should say:\n- Who this person is\n- How you met this person\n- How long you have known him/her\n- And explain why you want to work/study with him/her."
+        ]},
+        { topic: "FESTIVALS AND TRADITIONS", questions: [
+            "Describe a festival that is important in Vietnam.\n\nYou should say:\n- What that festival is\n- When it is celebrated\n- How it is celebrated\n- And explain why it is so important in your country.",
+            "Describe an interesting tradition in your country.\n\nYou should say:\n- What that tradition is\n- When it is celebrated\n- How it is celebrated\n- And explain why it is so important in your country."
         ]}
     ],
     part3: [
@@ -50,6 +57,14 @@ const ieltsData = {
             "How do you think this peer pressure affects students' learning?", 
             "What are the benefits of attending a top-tier educational institution, and what challenges might students face there?", 
             "How do scholarship opportunities impact students' educational experiences?"
+        ] },
+        { topic: "FESTIVALS AND TRADITIONS", questions: [
+            "Do you think festivals are important?", 
+            "How do people in Vietnam value traditional festivals?", 
+            "What’s the difference between the ways festivals are celebrated now and in the past?", 
+            "Why are traditional products important?", 
+            "What are the traditional Vietnamese products?", 
+            "Why is it important for children to learn about traditional products?"
         ] }
     ]
 };
